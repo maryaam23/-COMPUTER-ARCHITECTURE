@@ -1,0 +1,3284 @@
+#/Users/ASUS STRIX G15/Desktop/Calendar_M_L.txt
+#/Users/khaled/Desktop/L.txt
+#/Users/ASUS STRIX G15/Desktop/cal.txt
+# Made by: Mariam Hamad - 1200837 & Leena Affouri - 1200335
+    #Title: Interactive Monthly Calendar Application
+    #inputs:
+    #outputs:
+    #Date: 1/12/2023
+
+.data
+file_dD :    .word 0
+uffer: .space 1024
+empty_buffer: .space 1024  # Adjust the size as needed
+file_descriptor:    .word 0   # File descriptor for the output file
+file_d:    .word 0
+valid_first_time_msg: .asciiz "Valid Time\n"
+enter_days_msg: .asciiz "Enter the number of days: "
+filename: .asciiz "/Users/ASUS STRIX G15/Desktop/cal.txt"
+sec_file: .asciiz "/Users/ASUS STRIX G15/Desktop/L.txt"
+buffer: .space 1024  # Adjust the size as needed
+newline: .asciiz "\n"
+success_msg: .asciiz "File opened successfully!\n-----------------------------------\n\n"
+fail_msg: .asciiz "File does not exist or cannot be opened!\n"
+data_msg: .asciiz "THE DATA IN THE FILE IS:\n\n"
+menu_str: .asciiz "Menu:\n1. View Calendar\n2. View Statistics\n3. Add Appointment\n4. Delete Appointment\n5. Exit\nEnter your choice: "
+invalid_choice_msg: .asciiz "Invalid choice. Please enter a number between 1 and 5.\n"
+invalid_choice_msg_view_calender: .asciiz "Invalid choice. Please enter a number between 1 and 4.\n"
+day_not_found_msg: .asciiz "Day not found in the calendar.\n"
+statistics_menu_str: .asciiz "\n-------------\nStatistics Menu:\n1. number of lectures (in hours)\n2. number of OH (in hours)\n3. number of Meetings (in hour)\n4. average lectures per day\n5. the ratio between total number of hours reserved for lectures and the total number of hours reserved OH\n6. Exit From View Menu Statistics\nEnter your choice: "
+calendar_menu_str: .asciiz "\n--------------------------\nCalendar Menu:\n1. View Calendar per Day\n2. View Calendar per Set of Days\n3. View Calendar by Given Slot in a Given Day\n4. Exit From View Menu Calender\nEnter your choice: "
+calendar_per_day_menu_str: .asciiz "View Calendar per Day:\n1. Enter the number of the day to view the calendar: "
+set_of_days_menu_str: .asciiz "\n2. View Calendar per Set of Days:\n"
+calendar_per_set_of_days_menu_str: .asciiz "\nEnter the number of day: \n"
+HI:.asciiz "\nIAM HERE \n"
+prompt: .asciiz "Enter the number of the day: "
+successs_msg: .asciiz "The day exists. Schedule:\n"
+enter_set_msg: .asciiz "Enter the set of days numbers (separated by spaces): "
+prompt1: .asciiz "Enter day number (1-30): "
+prompt2: .asciiz "Enter time slot (8-17): "
+prompt3: .asciiz "Enter appointment type: "
+conflict_message: .asciiz "Conflict found! Please choose a different time slot."
+user_input: .space 1024
+failure_msg: .asciiz "The day does not exist.\n"
+prompt_day: .asciiz " Enter day number: "
+prompt_slot: .asciiz "\n  Enter time slot: \n"
+prompt_type: .asciiz "Enter type (L, OH, M): "
+
+invalid_slot_LESS: .asciiz "INVALID LAST TIME. THE LAST HOUR SHOULD BE GREATER THEN FIRST HOUR.\n "
+invalid_type_message: .asciiz "Invalid type. Please enter L, OH, or M.\n"
+start_message: .asciiz "\n ------------------------------------------------\nAdding an appointment:\n NOTE: You Can Add New Day With Appointment you need OR You Can add On The Day Already Exist\n\n"
+debug_slot_message: .asciiz "Slot: "
+appointment_details_message: .asciiz "Appointment details:\n"
+user_buffer: .space 1024  # Buffer for storing user input
+file_buffer: .space 1024  # Buffer for reading from the file
+
+invalid_choice_msg_view_statistics: .asciiz "Invalid choice. Please enter a number between 1 and 6.\n"
+start_time: .word 0
+end_time:   .word 0
+total_lectures_hours: .word 0
+number_of_Lecture: .asciiz "The number of Lecture (in hours) is: "
+number_of_OHs: .asciiz "The number of OH (in hours) is: "
+number_of_Meating: .asciiz "The number of Meating (in hours) is: "
+number_of_Lecture_for_avg: .asciiz "The number of Lecture (in hours) to find the avg is:"
+average_lectures_per_days: .asciiz "average lectures per day is: "
+ratio_between_hours_lectures_and_OH: .asciiz "ratio between hours lectures and OH is: "
+day_buffer: .space 1024  # Buffer for storing each day's number
+enter_first_time_msg: .asciiz "Please Enter The First Time:\n"
+enter_last_time_msg: .asciiz "Please Enter The Last Time:\n"
+invalid_time_msg:  .asciiz "Error: Invalid time. Please enter a time between 8 am and 5 pm.\n"
+fail:.asciiz "ERROR ----> THE NUMBER OF THE DAY DOES NOT EXIST PLEASE TRY AGAIN ^-^ \n"
+output_file: .asciiz "output.txt"  # Name of the output file
+sec_buffer: .space 1024  # Buffer for storing each day's number.text
+spac: .asciiz ""
+coma: .asciiz " , "
+b_b: .space 1024
+extracted_part1: .space 1024 # Adjust the size as needed
+extracted_part2: .space 1024 # Adjust the size as needed
+sure_mess: .asciiz "The first and last hour entered by user\n"
+te: .space 1024
+sla: .asciiz "-"
+add_appointment_buffer: .space 1024
+failure_msg_add_appointment:.asciiz " THE DAY YOU ENTERED IS NOT EXIST IN THE FILE SO WE WILL ADD IT AS NEW DAY IN CALENDER\n"
+successs_msg_add_appointment:.asciiz " THE DAY IS ALREADY EXIST AND THIS IS THEIR SLOT IN THE CALENDER\n"
+day_you_entered: .asciiz"  THE NUMBER OF DAY YOU WANT TO ADD IT TO YOUR CALENDER IS ---->   "
+
+First_time_slot: .asciiz"  Please Enter The First Time In Slot (It Should Be Between 8am - 5pm And Less Than The Last TIME \n"
+Last_time_slot: .asciiz"  Please Enter The last Time In Slot (It Should Be Between 8am - 5pm And Bigger Than The First TIME \n"
+error_slot_Add_appointment: .asciiz"The Time You Entered Is Not Between 8am - 5pm   --->   PLEASE TRY AGAIN \n "
+error_slot_Add_appointments: .asciiz"The Time You Entered Is Error It Should Be Larger Than The First Time   --->   PLEASE TRY AGAIN \n "
+time_approve: .asciiz" --------- The Time You Entered Is Approve ^-^  --------\n"
+enter_type: .asciiz "   Please enter the type for the slot you entered\n NOTE: SHOULD BE EQUAL 'L' / 'M' / 'O' = 'OH' --->  "
+type_buffer: .space 1024
+add_appo_buff: .space 1024
+true_type:.asciiz "\nTHE TYPE YOU ENTERED IS TRUE ^-^"
+false_type:.asciiz "THE TYPE YOU ENTERED IS WRONG _ IS SHOULD BE EQUAL 'L' / 'M' / 'OH'  \n"
+question: .asciiz "\nDO YOU WANT TO ADD ANOTHER SLOT? PLEASE ANSWER WITH Y(YES) OR N(NO) ----> "
+ answer_buff: .space 1
+ wrong_answer:.asciiz"Your Answer Is Wrong Please Try Again\n\n"
+ L_string:       .asciiz "L"
+OH_string:      .asciiz "OH"
+M_string:       .asciiz "M"
+WRITE_FILE: .asciiz "THE LINE WE WRITE IN THE FILE IS: \n"
+buffer_to_exit_day: .space 1024
+firstHour_exit_day: .asciiz"   Please enter the first hour for new slot to the day you choose\n   Note: The first hour should be larger than last hour already exist and be less than 5 pm --->  "
+err_less: .asciiz"The hour you entered is less than the last hour it exist \n"
+err_large_five: .asciiz"The hour you entered must be less than 5 \n"
+lerr_less: .asciiz"The hour you entered is less than the first hour TRY AGAIN \n"
+not_betw: .asciiz"The hour you entered is not between 8AM AND 5PM TRY AGAIN \n"
+partbuffer: .space 1024
+buffer_FILE_W: .space 1024
+buffer_FILE_LAST: .space 1024
+number_of_day_check_limit: .asciiz"The Number Of Day Must Be Between 0 And 31 only ---> TRY AGAIN \n"
+hello: .asciiz"\n WELCOM TO OUR FIRST PROJECT OF COMPUTER ARCHITECTURE\n MADE BY: Mariam Hamad - 1200837 & Leena Affouri - 1200335 \n It was made with a lot of effort and staying awake . Please do not ignore it\n\n "
+
+
+#delet
+user_delete_day: .asciiz "Please enter the number of day that you want to delete from Please choose a day from the calender shown for you:  "
+    user_delete_type: .asciiz "Please enter the type that you want to delete (L or M or O (for OH)) "
+    user_delete_start_slot: .asciiz "Please enter the start time for the slot that you want to delete from "
+    user_delete_end_slot: .asciiz "Please enter the end time for the slot that you want to delete from "
+    invalid_day_input: .asciiz "invaled day please enter a valed day from the calender "
+    invalid_type_input: .asciiz "invaled type please enter the type that you want to delete (L or M or O (for Offece Hour)) "
+    number_of_days: .asciiz "the number of days you can choose from is : "
+    number_of__count_days: .asciiz "the number of days in the calender is: "
+    finish_delete: .asciiz "the delete process successfull, here is the calendar with the delete "
+    delet_buffe: .space 1024
+   
+   
+.text
+   # Print success message
+    li $v0, 4          # system call number for print_str
+    la $a0, hello  # address of the success message
+    syscall
+
+main:
+
+    # Open file for reading (to check if it exists)
+    li $v0, 13         # system call number for open
+    la $a0, filename   # load address of filename into $a0
+    li $a1, 0          # flag for reading (O_RDONLY)
+    li $a2, 0          # mode is ignored
+    syscall
+    move $s0, $v0      # save the file descriptor in $s0
+    # Check if the file was opened successfully
+    bgez $s0, file_exists
+    li $v0, 4          # system call number for print_str
+    la $a0, fail_msg   # address of the failure message
+    syscall
+    j exit_program
+
+file_exists:
+    # Print success message
+    li $v0, 4          # system call number for print_str
+    la $a0, success_msg   # address of the success message
+    syscall
+    # Close file
+    li $v0, 16         # system call number for close
+    move $a0, $s0      # file descriptor
+    syscall
+
+    menu_loop:
+        # Display menu
+        li $v0, 4          # system call number for print_str
+        la $a0, menu_str   # address of the menu string
+        syscall
+
+        # Get user choice
+        li $v0, 5          # system call number for read_int
+        syscall
+        move $t0, $v0      # save user choice in $t0
+
+        # Process user choice
+        beq $t0, 1, view_calendar
+        beq $t0, 2, view_statistics
+        beq $t0, 3, add_appointment
+        beq $t0, 4, delete_appointment
+        beq $t0, 5, exit_program
+
+        # Invalid choice
+        li $v0, 4          # system call number for print_str
+        la $a0, invalid_choice_msg   # address of the invalid choice message
+        syscall
+        j menu_loop  # Repeat the menu loop
+
+view_calendar:
+    # Print the data in the file
+    li $v0, 4          # system call number for print_str
+    la $a0, data_msg   # address of the data message
+    syscall
+
+    # Open file for reading (to check if it exists)
+    li $v0, 13         # system call number for open
+    la $a0, filename   # load address of filename into $a0
+    li $a1, 0          # flag for reading (O_RDONLY)
+    li $a2, 0          # mode is ignored
+    syscall
+    move $s0, $v0      # save the file descriptor in $s0
+
+ read_and_print:
+    # Read file
+    li $v0, 14         # system call number for read
+    move $a0, $s0      # file descriptor
+    la $a1, buffer     # buffer to store read data
+    li $a2, 1024       # number of bytes to read
+    syscall
+
+    # Check if the read operation was successful
+    bgez $v0, print_buffer
+    j exit_view_calendar_loop  # Jump to exit view calendar loop if read operation fails
+
+print_buffer:
+    # Print the read data
+    li $v0, 4          # system call number for print_str
+    la $a0, buffer     # address of the buffer
+    syscall
+
+    # Print a newline
+    li $v0, 4          # system call number for print_str
+    la $a0, newline    # address of the newline character
+    syscall
+
+    # Exit view calendar loop
+    j exit_view_calendar_loop
+
+exit_view_calendar_loop:
+    # Close file
+    li $v0, 16         # system call number for close
+    move $a0, $s0      # file descriptor
+    syscall
+
+    # Display the calendar view menu
+    li $v0, 4          # system call number for print_str
+    la $a0, calendar_menu_str   # address of the main calendar menu string
+    syscall
+
+    # Get user choice for the calendar menu
+    li $v0, 5          # system call number for read_int
+    syscall
+    move $t0, $v0      # save user choice in $t0
+
+    # Process user choice for the calendar menu
+    beq $t0, 1, view_calendar_per_day
+    beq $t0, 2, view_calendar_per_set_of_days
+    beq $t0, 3, view_calendar_by_slot_in_day
+    beq $t0, 4, exit_view_calendar_menu
+
+    # Invalid choice
+    li $v0, 4          # system call number for print_str
+    la $a0, invalid_choice_msg_view_calender  # address of the invalid choice message
+    syscall
+    j exit_view_calendar_loop  # Repeat the loop after displaying the calendar menu
+   
+    #-------------------------------------------------------------------------------------------
+exit_view_calendar_menu:
+    # Return to the main menu
+    j menu_loop
+   
+        larger_than_31:
+    # Print string for day larger than the limit
+    li $v0, 4            # syscall code for print string
+    la $a0, number_of_day_check_limit # load address of the prompt for day
+    syscall
+    j view_calendar_per_day
+view_calendar_per_day:
+    # Ask user to enter the number of the day
+    li $v0, 4
+    la $a0, calendar_per_day_menu_str
+    syscall
+
+    # Read user input
+    li $v0, 5
+    syscall
+    move $t0, $v0  # Save the entered day number in $t0
+    li $t1, 31           # Load the threshold value (31) into $t1
+    bgt $t0, $t1, larger_than_31
+   
+    # Open the input file for reading
+    li $v0, 13             # syscall for open file
+    la $a0, filename       # input file name
+    li $a1, 0              # flags: O_RDONLY
+    li $a2, 0              # mode: not needed for reading
+    syscall
+    move $s0, $v0          # save input file descriptor
+
+    # Load the address of the buffer into $t1
+    la $t1, buffer
+
+    # Search for the day in the buffer
+    li $t3, 0
+
+search_loop:
+    lb $t2, 0($t1)      # load a byte from the buffer
+    beqz $t2, not_found     # branch if equal to zero if end of the string, day not found end of line
+    beq $t2, 10, reset #his instruction branches to the reset label if the value in register $t2 is equal to 10. In ASCII, the decimal value 10 corresponds to the newline character ('\n'
+
+    # Check for colon ':' and extract the day number
+    beq $t2, 58, extract_day  # This section of your code is checking if the byte loaded from the buffer ($t2) is equal to the ASCII code of the colon character ':' (decimal value 58). If it is, it means that you are processing the part of the string that contains the day number.
+    sub $t2, $t2, 48      # convert ASCII to integer
+    mul $t3, $t3, 10      # shift previous digits left
+    add $t3, $t3, $t2     # add current digit
+    addi $t1, $t1, 1      # move to the next character in the buffer
+    j search_loop
+
+not_found:
+    # Display "Day not found" message
+    li $v0, 4
+    la $a0, failure_msg
+    syscall
+ 
+    j exit_view_calendar_loop
+
+print_number:
+    # Print the entered day number
+    li $v0, 1          # syscall for print integer
+    move $a0, $t0       # integer to print
+    syscall
+    # Print a character (e.g., ':') next to the entered day number
+    li $v0, 11             # Print character syscall
+    li $a0, 58             # ASCII code for ':'
+    syscall
+    j printDay
+
+printDay:
+    beq $t2, 10, exit_view_calendar_loop     # Exit the loop if the character is 'y'
+    lb $t2, 0($t1)
+    li $v0, 11              # Print character syscall
+    move $a0, $t2           # Move the character to $a0
+    syscall
+    addi $t1, $t1, 1   # Move to the next character in the string
+    j printDay
+   
+extract_day:
+    addi, $t1,$t1,1
+    bne $t0, $t3, search_loop
+    li $v0, 4
+    la $a0, successs_msg
+    syscall
+    j print_number
+
+reset:
+    li $t3, 0
+    addi,$t1,$t1,1
+    j search_loop
+#----------------------------------------------------------------------        
+        larger_than_312:
+    # Print string for day larger than the limit
+    li $v0, 4            # syscall code for print string
+    la $a0, number_of_day_check_limit # load address of the prompt for day
+    syscall
+    j  loop_start
+view_calendar_per_set_of_days:
+        # Ask user to enter the number of days
+    li $v0, 4
+    la $a0, set_of_days_menu_str
+    syscall
+       # Ask user to enter the number of days
+    li $v0, 4
+    la $a0, enter_days_msg
+    syscall
+    # Read user input
+    li $v0, 5
+    syscall
+    move $t4, $v0  # Save the entered number of days in $t4
+   
+
+   
+    # Loop to perform operations for the specified number of days
+    li $t5, 0  # Counter for the number of days processed
+    loop_start:
+        # Ask user to enter the number of the day
+        li $v0, 4
+        la $a0, calendar_per_set_of_days_menu_str
+        syscall
+        # Read user input
+        li $v0, 5
+        syscall
+        move $t0, $v0  # Save the entered day number in $t0
+        li $t1, 31           # Load the threshold value (31) into $t1
+    bgt $t0, $t1, larger_than_312
+        # Open the input file for reading
+        li $v0, 13             # syscall for open file
+        la $a0, filename       # input file name
+        li $a1, 0              # flags: O_RDONLY
+        li $a2, 0              # mode: not needed for reading
+        syscall
+        move $s0, $v0          # save input file descriptor
+        # Load the address of the buffer into $t1
+        la $t1, buffer
+        # Search for the day in the buffer
+        li $t3, 0
+    search_Second_loop:
+        lb $t2, 0($t1)      # load a byte from the buffer
+        beqz $t2, dont_found    # branch if equal to zero if end of the string, day not found end of line
+        beq $t2, 10, Reset # This instruction branches to the reset label if the value in register $t2 is equal to 10. In ASCII, the decimal value 10 corresponds to the newline character ('\n')
+        # Check for colon ':' and extract the day number
+        beq $t2, 58, check_days  # This section of your code is checking if the byte loaded from the buffer ($t2) is equal to the ASCII code of the colon character ':' (decimal value 58). If it is, it means that you are processing the part of the string that contains the day number.
+        sub $t2, $t2, 48      # convert ASCII to integer
+        mul $t3, $t3, 10      # shift previous digits left
+        add $t3, $t3, $t2     # add current digit
+        addi $t1, $t1, 1      # move to the next character in the buffer
+        j search_Second_loop
+
+    dont_found:
+        # Display "Day not found" message
+        li $v0, 4
+        la $a0, failure_msg
+        syscall
+        j exit_loop
+
+print_numbers:
+    # Print the entered day number
+    li $v0, 1          # syscall for print integer
+    move $a0, $t0       # integer to print
+    syscall
+    # Print a character (e.g., ':') next to the entered day number
+    li $v0, 11             # Print character syscall
+    li $a0, 58             # ASCII code for ':'
+    syscall
+    j printDays
+   
+    printDays:
+        beq $t2, 10, exit_loop     # Exit the loop if the character is 'y'
+        lb $t2, 0($t1)
+        li $v0, 11              # Print character syscall
+        move $a0, $t2           # Move the character to $a0
+        syscall
+        addi $t1, $t1, 1   # Move to the next character in the string
+        j printDays
+
+    check_days:
+        addi $t1, $t1, 1
+        bne $t0, $t3, search_Second_loop
+        li $v0, 4
+        la $a0, successs_msg
+        syscall
+        j print_numbers
+
+    Reset:
+        li $t3, 0
+        addi $t1, $t1, 1
+        j search_Second_loop
+
+    exit_loop:
+        # Close the file
+        li $v0, 16
+        move $a0, $s0
+        syscall
+        # Increment the counter
+        addi $t5, $t5, 1
+        # Check if the number of days processed is less than the user's input
+        blt $t5, $t4, loop_start
+        j exit_view_calendar_loop  
+    j exit_loop
+#------------------------------------------------
+
+view_calendar_by_slot_in_day:
+    li $s4, 0  
+    # Ask user to enter the number of days
+    li $v0, 4
+    la $a0, enter_days_msg
+    syscall
+    # Read user input
+    li $v0, 5
+    syscall
+    move $t0, $v0  # Save the entered number of days in $t4
+#-----------------check if day exist
+  # Open the input file for reading
+    li $v0, 13             # syscall for open file
+    la $a0, filename       # input file name
+    li $a1, 0              # flags: O_RDONLY
+    li $a2, 0              # mode: not needed for reading
+    syscall
+    move $s0, $v0          # save input file descriptor
+     la $t1, buffer   # Load the address of the buffer into $t1
+     la $t8 , b_b
+     la $t4, sec_buffer  
+    # Search for the day in the buffer
+    li $t3, 0
+Fsearch_loop:
+    lb $t2, 0($t1)      # load a byte from the buffer
+    beqz $t2, noo_found     # branch if equal to zero if end of the string, day not found end of line
+    beq $t2, 10, resett #his instruction branches to the reset label if the value in register $t2 is equal to 10. In ASCII, the decimal value 10 corresponds to the newline character ('\n'
+    # Check for colon ':' and extract the day number
+    beq $t2, 58, extract_dayy  # This section of your code is checking if the byte loaded from the buffer ($t2) is equal to the ASCII code of the colon character ':' (decimal value 58). If it is, it means that you are processing the part of the string that contains the day number.
+    sub $t2, $t2, 48      # convert ASCII to integer
+    mul $t3, $t3, 10      # shift previous digits left
+    add $t3, $t3, $t2     # add current digit
+    addi $t1, $t1, 1      # move to the next character in the buffer
+    j Fsearch_loop
+
+noo_found:
+    # Display "Day not found" message
+    li $v0, 4
+    la $a0, fail
+    syscall
+    j view_calendar_by_slot_in_day
+
+print_numberr:
+    # Print the entered day number
+    li $v0, 1          # syscall for print integer
+    move $a0, $t0       # integer to print
+    syscall
+    # Print a character (e.g., ':') next to the entered day number
+    li $v0, 11             # Print character syscall
+    li $a0, 58             # ASCII code for ':'
+    syscall  
+    j printDayy  
+   
+extract_dayy:
+    addi, $t1,$t1,1
+    bne $t0, $t3, Fsearch_loop
+    li $v0, 4
+    la $a0, successs_msg
+    syscall
+    j print_numberr
+
+resett:
+    li $t3, 0
+    addi,$t1,$t1,1
+    j Fsearch_loop
+   
+li $t5, 0   # Initialize the buffer with zeros
+
+print_buffer_loop:
+     # Print the buffer
+    li $v0, 4
+    la $a0, sec_buffer
+    syscall      # Move to the next character in the buffer
+    j end_print_buffer
+
+end_print_buffer:
+    # Print a newline character to separate the printed content from the rest of the output
+    li $v0, 4
+    la $a0, newline
+    syscall
+j p
+
+li $s4, 0
+printDayy:
+    beq $t2, 10,get_first_time     # Exit the loop if the character is 'y'
+    lb $t2, 0($t1)
+    li $v0, 11              # Print character syscall
+    move $a0, $t2           # Move the character to $a0
+    syscall
+     # Save the character to the buffer
+    sb $t2, 0($t4) # t4 sec_buffer has the line of number data
+    addi $t4, $t4, 1
+    j  get_numbers_only
+
+ get_numbers_only:
+        beq $t2, 32 , space # space
+beq $t2, 45, slash# -
+#beq $t2, 44, addd  # ,
+beq $t2, 76, addd# L
+beq $t2, 77, addd# M
+beq $t2, 79, addd# O
+beq $t2, 72, addd # H
+sb $t2, 0($t8)
+        addi $t8, $t8, 1
+        addi $t1, $t1, 1   # Move to the next character in the string
+ j printDayy
+   
+ slash:
+li $t9, 44      # Load the ASCII value for space into $t9
+sb $t9, 0($t8)  # Store the value in $t9 into the buffer at the address in $t8
+addi $t8, $t8, 1
+addi $t1, $t1, 1  
+j printDayy
+
+space:
+addi $s4, $s4, 1
+        beq $s4, 6,slash
+        addi $t1, $t1, 1  
+j printDayy
+
+addd:
+       addi $t1, $t1, 1  
+j printDayy
+ 
+ p:
+      # Print the buffer
+    li $v0, 4
+    la $a0, b_b
+    syscall    
+         # Print a newline character to separate the printed content from the rest of the output
+    li $v0, 4
+    la $a0, newline
+    syscall
+j process_char
+   
+process_char:
+
+   # Open the file for writing, truncating its contents (syscall 13)
+    li $v0, 13          # syscall 13: open file
+    la $a0, sec_file    # load address of filename into $a0
+    li $a1, 1           # file flags: 1 for write
+    li $a2, 385         # file mode: O_WRONLY | O_TRUNC
+    syscall
+    sw $v0, file_d      # store the file descriptor
+
+    # Optionally, you can write something to the file (e.g., a newline character)
+    li $v0, 15          # syscall 15: write to file
+    lw $a0, file_d      # load file descriptor from memory
+    la $a1,spac     # load the address of the newline character into $a1
+    li $a2, 0           # number of bytes to write (newline character)
+    syscall
+
+    # Close the file (syscall 16)
+    li $v0, 16          # syscall 16: close file
+    lw $a0, file_d      # load file descriptor from memory
+    syscall
+   
+   # Open the file for writing (syscall 13)
+    li $v0, 13          # syscall 13: open file
+    la $a0, sec_file    # load address of filename into $a0
+    li $a1, 9      # file flags: 1 for write, 0 for read
+    li $a2, 0           # file mode: not needed when opening an existing file
+    syscall
+    sw $v0, file_descriptor  # store the file descriptor
+
+    # Print the contents of the buffer to the file
+    li $v0, 15          # syscall 15: write to file
+    lw $a0, file_descriptor  # load file descriptor from memory
+    la $a1, b_b      # load the address of the buffer into $a1
+    li $a2, 100    # number of bytes to write (adjust based on your buffer size)
+    syscall
+ 
+    # Close the file (syscall 16)
+    li $v0, 16          # syscall 16: close file
+    lw $a0, file_descriptor  # load file descriptor from memory
+    syscall
+    j previous_hour_check
+
+ previous_hour_check:
+  # Prompt the user for the first number
+    li $v0, 4           # syscall 4: print string
+    la $a0, sure_mess   # load the address of the prompt string into $a0
+    syscall
+   # Print the value in register $t6
+    li $v0, 1           # syscall 1: print integer
+    move $a0, $t6        # load the value in $t6 into $a0
+    syscall
+
+    # Print a space character
+    li $v0, 11          # syscall 11: print character
+    li $a0, 32          # ASCII code for space character
+    syscall
+    # Print the value in register $t7
+    li $v0, 1           # syscall 1: print integer
+    move $a0, $t7        # load the value in $t7 into $a0
+    syscall
+
+    # Print a newline for formatting
+    li $v0, 4           # syscall 4: print string
+    la $a0, newline      # load the address of a newline string into $a0
+    syscall
+j open_temp_file
+   
+ open_temp_file:
+    # Open the file for reading (syscall 13)
+    li $v0, 13          # syscall 13: open file
+    la $a0, sec_file    # load address of filename into $a0
+    li $a1, 0           # file flags: 0 for read, 1 for write
+    li $a2, 0           # file mode: not needed when opening an existing file
+    syscall
+    move $s0, $v0
+    # Load a byte from the file
+    li $v0, 14           # syscall 14: read from file
+    move $a0, $s0        # load file descriptor from $s0
+    la $a1, te       # load the address of the buffer into $a1
+    li $a2, 100            # number of bytes to read
+    syscall
+    la $t1, te
+    # Initialize result register
+    li $t9, 0
+    li $t2, 0
+    j temp
+
+temp:
+     lb $t2, 0($t1)
+    #beq $t2, 32, print_num   # Print the number if a space is encountered
+    beq $t2, 44, odd_even # Print the number if a comma is encountered
+    beq $t2, 10, done_extraction  # Done if the null terminator is encountered
+
+    # Convert ASCII to integer
+    sub $t2, $t2, 48         # Convert ASCII to integer
+    mul $t9, $t9, 10         # Shift previous digits left
+    add $t9, $t9, $t2        # Add current digit
+
+    # Move to the next character in the buffer
+    addi $t1, $t1, 1
+    j temp
+   
+li $s0,0
+odd_even:
+    addi $s0, $s0 , 1
+    # Check if $s0 is odd or even
+    andi $t0, $s0, 1      # Perform bitwise AND with 1 to get the remainder
+    beqz $t0, go_to_check_splot_even        # If remainder is 0, jump to even
+j go_to_check_splot_odd
+
+go_to_check_splot_even:
+ # Check if t9 is 1, 2, 3, 4, or 5
+  li $t8, 1    # Load immediate value 1 into $t8
+    beq $t9, $t8, add_12  # If t9 is 1, branch to add_12
+    addi $t8, $t8, 1       # Increment $t8 to 2
+    beq $t9, $t8, add_12  # If t9 is 2, branch to add_12
+    addi $t8, $t8, 1       # Increment $t8 to 3
+    beq $t9, $t8, add_12  # If t9 is 3, branch to add_12
+    addi $t8, $t8, 1       # Increment $t8 to 4
+    beq $t9, $t8, add_12  # If t9 is 4, branch to add_12
+    addi $t8, $t8, 1       # Increment $t8 to 5
+    beq $t9, $t8, add_12  # If t9 is 5, branch to add_12
+    bgt $t9, $t7, print_t7
+j print_num
+
+add_12:
+    # Add 12 to t9
+    addi $t9, $t9, 12  
+j go_to_check_splot_even
+   
+sub_t7:
+    sub $t7, $t7, 12
+j print_t7
+
+print_t7:
+    li $t8, 13
+    beq $t7, $t8, sub_t7
+    li $t8, 14
+    beq $t7, $t8, sub_t7
+    li $t8, 15
+    beq $t7, $t8, sub_t7
+    li $t8, 16
+    beq $t7, $t8, sub_t7
+    li $t8, 17
+    beq $t7, $t8, sub_t7
+    li $v0, 1            # syscall 1: print integer
+    move $a0, $t7         # load the extracted integer into $a0
+    syscall
+    li $v0, 4            # syscall 4: print string
+    la $a0, coma        # load the address of a comma string into $a0
+    syscall
+    li $t9, 0           # Reset the result register for the next number
+    addi $t1, $t1, 1    # move to the next character in the buffer
+    j temp
+   
+go_to_check_splot_odd:
+# Check if t9 is 1, 2, 3, 4, or 5
+    li $t8, 1    # Load immediate value 1 into $t8
+    beq $t9, $t8, ad_12  # If t9 is 1, branch to add_12
+    addi $t8, $t8, 1       # Increment $t8 to 2
+    beq $t9, $t8, ad_12  # If t9 is 2, branch to add_12
+    addi $t8, $t8, 1       # Increment $t8 to 3
+    beq $t9, $t8, ad_12  # If t9 is 3, branch to add_12
+    addi $t8, $t8, 1       # Increment $t8 to 4
+    beq $t9, $t8, ad_12  # If t9 is 4, branch to add_12
+    addi $t8, $t8, 1       # Increment $t8 to 5
+    beq $t9, $t8, ad_12  # If t9 is 5, branch to add_12
+    blt $t9, $t6, print_t6
+j print_num_odd
+ad_12:
+    # Add 12 to t9
+    addi $t9, $t9, 12  
+j go_to_check_splot_odd
+   
+sub_t6:
+    sub $t6, $t6, 12
+j print_t6
+   
+print_t6:
+    li $t8, 13
+    beq $t6, $t8, sub_t6
+    li $t8, 14
+    beq $t6, $t8, sub_t6
+    li $t8, 15
+    beq $t6, $t8, sub_t6
+    li $t8, 16
+    beq $t6, $t8, sub_t6
+    li $t8, 17
+    beq $t6, $t8, sub_t6
+    li $v0, 1            # syscall 1: print integer
+    move $a0, $t6         # load the extracted integer into $a0
+    syscall
+    li $v0, 4            # syscall 4: print string
+    la $a0, sla      # load the address of a newline string into $a0
+    syscall
+    li $t9, 0           # Reset the result register for the next number
+    addi $t1, $t1, 1    # move to the next character in the buffer
+    j temp
+   
+ sub_t9:
+       sub $t9, $t9, 12
+    j print_num
+   
+print_num:
+    li $t8, 13
+    beq $t9, $t8, sub_t9
+    li $t8, 14
+    beq $t9, $t8, sub_t9
+    li $t8, 15
+    beq $t9, $t8, sub_t9
+    li $t8, 16
+    beq $t9, $t8, sub_t9
+    li $t8, 17
+    beq $t9, $t8, sub_t9
+    li $v0, 1            # syscall 1: print integer
+    move $a0, $t9         # load the extracted integer into $a0
+    syscall
+    li $v0, 4            # syscall 4: print string
+    la $a0, coma      # load the address of a newline string into $a0
+    syscall
+    li $t9, 0           # Reset the result register for the next number
+    addi $t1, $t1, 1    # move to the next character in the buffer
+    j temp
+   
+ sub_t99:
+       sub $t9, $t9, 12
+    j print_num_odd
+   
+print_num_odd:
+    li $t8, 13
+    beq $t9, $t8, sub_t99
+    li $t8, 14
+    beq $t9, $t8, sub_t99
+    li $t8, 15
+    beq $t9, $t8, sub_t99
+    li $t8, 16
+    beq $t9, $t8, sub_t99
+    li $t8, 17
+    beq $t9, $t8, sub_t99
+    li $v0, 1            # syscall 1: print integer
+    move $a0, $t9         # load the extracted integer into $a0
+    syscall
+    li $v0, 4            # syscall 4: print string
+    la $a0, sla    
+    syscall
+    li $t9, 0           # Reset the result register for the next number
+    addi $t1, $t1, 1    # move to the next character in the buffer
+    j temp  
+
+done_extraction:
+
+    j exit_view_calendar_loop
+ #-----------------------------
+#t6 first t7 last
+get_first_time:
+    # Ask user to enter the first time
+    li $v0, 4
+    la $a0, enter_first_time_msg
+    syscall
+    # Read user input for the first time
+    li $v0, 5
+    syscall
+    move $t6, $v0  # Save the entered first time in $t6
+    # Validate and adjust the first time
+    j validate_first_time
+
+validate_first_time:
+    # Check if t6 is in the range [1, 5] and add 12 if true
+    li $t8, 1
+    li $t9, 5
+    bge $t6, $t8, check_add_12_first
+    b check_done_first
+
+check_add_12_first:
+    ble $t6, $t9, add_12_first
+    bge $t6, $t9, check_done_first
+   
+add_12_first:
+    addi $t6, $t6, 12
+    j check_done_first
+   
+check_done_first:
+    # Check if the first time is between 8 am and 5 pm
+    blt $t6, 8, invalid_first_time
+    bge $t6, 17, invalid_first_time
+    li $v0, 4
+    la $a0, valid_first_time_msg
+    syscall
+    # Continue to get the last time
+    j get_last_time
+   
+invalid_first_time:
+    # Display error message for invalid time
+    li $v0, 4
+    la $a0, invalid_time_msg
+    syscall
+    j get_first_time
+   
+get_last_time:
+    # Ask user to enter the last time
+    li $v0, 4
+    la $a0, enter_last_time_msg
+    syscall
+    # Read user input for the last time
+    li $v0, 5
+    syscall
+    move $t7, $v0  # Save the entered last time in $t7
+    # Validate and adjust the last time
+    j validate_last_time
+
+validate_last_time:
+    # Check if t7 is in the range [1, 5] and add 12 if true
+    li $t8, 1
+    li $t9, 5
+    bge $t7, $t8, check_add_12_last
+    b check_done_last
+
+check_add_12_last:
+    ble $t7, $t9, add_12_last
+    bge $t7, $t9, check_done_last
+add_12_last:
+    addi $t7, $t7, 12
+    # Check if last time is before first time
+    ble $t7, $t6, invalid_slot_LESSS
+    j check_done_last
+       
+check_done_last:
+    # Check if the last time is between 8 am and 5 pm
+    ble $t7, 8, invalid_last_time
+    bgt $t7, 17, invalid_last_time
+    ble $t7, $t6, invalid_slot_LESSS
+    li $v0, 4
+    la $a0, valid_first_time_msg
+    syscall
+    j  print_buffer_loop
+   
+invalid_slot_LESSS:
+  # Display error message for invalid time
+    li $v0, 4
+    la $a0, invalid_slot_LESS
+    j get_last_time
+
+invalid_last_time:
+    # Display error message for invalid time
+    li $v0, 4
+    la $a0, invalid_time_msg
+    syscall
+    j get_last_time
+#----------------------------------------------------------------  view calender end --------------------------------------------------------
+
+    view_statistics:
+       # Print the data in the file
+    li $v0, 4          # system call number for print_str
+    la $a0, HI   # address of the data message
+    syscall
+
+    # Open file for reading (to check if it exists)
+    li $v0, 13         # system call number for open
+    la $a0, filename   # load address of filename into $a0
+    li $a1, 0          # flag for reading (O_RDONLY)
+    li $a2, 0          # mode is ignored
+    syscall
+    move $s0, $v0      # save the file descriptor in $s0
+
+read_and_print_stat:
+    # Read file
+    li $v0, 14         # system call number for read
+    move $a0, $s0      # file descriptor
+    la $a1, buffer     # buffer to store read data
+    li $a2, 1024       # number of bytes to read
+    syscall
+
+    # Check if the read operation was successful
+    bgez $v0, print_buffer_stat
+    j exit_view_statistics_loop  # Jump to exit view statistics loop if read operation fails
+
+print_buffer_stat:
+    # Print the read data
+    li $v0, 4          # system call number for print_str
+    la $a0, buffer     # address of the buffer
+    syscall
+
+    # Print a newline
+    li $v0, 4          # system call number for print_str
+    la $a0, newline    # address of the newline character
+    syscall
+
+    # Exit view statistics loop
+    j exit_view_statistics_loop
+
+
+exit_view_statistics_loop:
+    # Close file
+    li $v0, 16         # system call number for close
+    move $a0, $s0      # file descriptor
+    syscall
+
+    # Display the statistics view menu
+    li $v0, 4          # system call number for print_str
+    la $a0, statistics_menu_str   # address of the main statistics menu string
+    syscall
+
+    # Get user choice for the statistics menu
+    li $v0, 5          # system call number for read_int
+    syscall
+    move $t0, $v0      # save user choice in $t0
+
+    # Process user choice for the statistics menu
+        beq $t0, 1, number_of_lectures
+        beq $t0, 2, number_of_OH
+        beq $t0, 3, number_of_Meetings
+        beq $t0, 4, average_lectures_per_day
+        beq $t0, 5, ratio_between_hours_lectures_OH
+        beq $t0, 6, exit_view_statistics_menu
+    # Invalid choice
+    li $v0, 4          # system call number for print_str
+    la $a0, invalid_choice_msg_view_statistics  # address of the invalid choice message
+    syscall
+    j exit_view_statistics_loop  # Repeat the loop after displaying the statistics menu
+#---------------------------------------------------------------------------------------
+number_of_lectures:
+
+    # Load the address of the buffer into $t1
+    la $t1, buffer
+
+    li $t0, 0  # Register for total lecture hours
+
+    loop:
+        lb $t2, 0($t1)  # take one byte
+
+        # Check if the current character is newline '\n'
+        beq $t2, 10, found_newline
+       
+         # Check if the current character is the null terminator (end of the string)
+        beqz $t2, process_exit
+
+        # Check if the current character is 'L'
+        beq $t2, 76, found_L
+
+        # Move to the next character in the string
+        addi $t1, $t1, 1
+
+        # Continue the loop
+        j loop
+
+    found_L:
+        # Move back two bytes to end hour
+        addi $t6, $t1, -2
+        lb $t3, 0($t6)
+        # convert from ascii to integer
+        addi $t3, $t3, -48
+        #move back three byte to check if the number one or two digits
+        addi $t7, $t1, -3
+        lb $t4, 0($t7)
+        # if the code reach to 45 which is the ascii code for the "-" that mean the number is one digit
+        bne  $t4, 45, two_digit
+        j return_here_end
+       
+      return_here_end:  
+        # Check if the start hour is 1, 2, 3, 4, or 5
+        li $t5, 1
+        li $t6, 2
+        li $t7, 3
+        li $t8, 4
+        li $t9, 5
+        beq $t3, $t5, add_12_end
+        beq $t3, $t6, add_12_end
+        beq $t3, $t7, add_12_end
+        beq $t3, $t8, add_12_end
+        beq $t3, $t9, add_12_end
+        j found_L_end_return
+       
+     found_L_end_return:
+        # Move back four bytes to start hour
+        addi $t6, $t1, -4
+        lb $t4, 0($t6)
+       # if the code reach to 45 which is the ascii code for the "-" that mean the number is two digit
+        beq  $t4, 45, first_number_two_digit
+        #convert the number from ascii to integer
+        addi $t4, $t4, -48
+        #move back five bytes to check if the second number is one digit or two
+        addi $t7, $t1, -5
+        lb $t5, 0($t7)
+        #if its not equal to 32 which is the ascii code for the space then the number is two digit
+        bne  $t5, 32, two_digits
+        j return_here_start
+       
+        # Convert start hour from ASCII to integer
+      return_here_start:
+    # Check if the end hour is 1, 2, 3, 4, or 5
+        li $t5, 1
+        li $t6, 2
+        li $t7, 3
+        li $t8, 4
+        li $t9, 5
+        beq $t4, $t5, add_12_start
+        beq $t4, $t6, add_12_start
+        beq $t4, $t7, add_12_start
+        beq $t4, $t8, add_12_start
+        beq $t4, $t9, add_12_start
+        j found_L_stat_return
+       
+      found_L_stat_return:
+
+        # Calculate the duration of lectures for this line
+        sub $t5, $t3, $t4  # Calculate the difference (end time - start time)
+        add $t0, $t0, $t5        # Add the current difference to the running total
+       
+        j found_newline  # Jump to found_newline after processing
+
+
+    two_digit: #for the end
+        #if the number two digit first convert to integer
+        addi $t4, $t4, -48
+        #multiply the nymber by 10then add the two number to combine them into one number
+        mul  $t4, $t4, 10
+        add  $t3, $t4, $t3
+       j found_L_end_return
+       
+    two_digits:#for the start
+        addi $t5, $t5, -48
+         mul  $t5, $t5, 10
+        add  $t4, $t4, $t5
+        j found_L_stat_return
+           
+    add_12_end:
+        #add 12 to the number to make it in 24 hour style to help with subtraction
+        add $t3, $t3, 12  # Add 12 to the end hour
+        j found_L_end_return
+
+    add_12_start:
+         #add 12 to the number to make it in 24 hour style to help with subtraction
+        add $t4, $t4, 12  # Add 12 to the start hour
+        j found_L_stat_return
+
+    first_number_two_digit:
+    #if the first number two digit then move back five bytes
+        addi $t6, $t1, -5
+        lb $t4, 0($t6)
+        #convert to integer
+        addi $t4, $t4, -48
+        #move bach six byte
+        addi $t7, $t1, -6
+        lb $t5, 0($t7)
+        #if t5 = 32 which is space then its one digit if not its two digit
+        bne  $t5, 32, two_digits
+        beq  $t5, 32, return_here_start
+
+
+    found_newline:
+        # Move to the next line (skip the newline character)
+        addi $t1, $t1, 1
+        # Continue the loop
+        j loop
+
+    process_exit:
+       
+        li $v0, 4          # system call for print_str
+        la $a0, number_of_Lecture  # load address of the output message
+        syscall
+
+        li $v0, 1          # system call for print_int
+        move $a0, $t0      # load the value from register $t0
+        syscall
+         
+        j exit_view_statistics_loop
+
+    #all the steps here is the same as the previous one but with changing the ascii code for the 'O' which is 79  
+number_of_OH:
+      # Load the address of the buffer into $t1
+    la $t1, buffer
+
+    li $t0, 0  # Register for total OH hours
+
+    loop_OH:
+        lb $t2, 0($t1)  # take one byte
+
+        # Check if the current character is newline '\n'
+        beq $t2, 10, found_OH_newline
+       
+         # Check if the current character is the null terminator (end of the string)
+        beqz $t2, process_OH_exit
+
+        # Check if the current character is 'O'
+        beq $t2, 79, found_OH
+
+        # Move to the next character in the string
+        addi $t1, $t1, 1
+
+        # Continue the loop
+        j loop_OH
+
+    found_OH:
+        # Move back two bytes to end hour
+        addi $t6, $t1, -2
+        lb $t3, 0($t6)
+       
+        addi $t3, $t3, -48
+       
+        addi $t7, $t1, -3
+        lb $t4, 0($t7)
+        bne  $t4, 45, two_digit_OH
+        j return_here_end_OH
+       
+      return_here_end_OH:  
+        # Check if the start hour is 1, 2, 3, 4, or 5
+        li $t5, 1
+        li $t6, 2
+        li $t7, 3
+        li $t8, 4
+        li $t9, 5
+        beq $t3, $t5, add_12_end_OH
+        beq $t3, $t6, add_12_end_OH
+        beq $t3, $t7, add_12_end_OH
+        beq $t3, $t8, add_12_end_OH
+        beq $t3, $t9, add_12_end_OH
+        j found_OH_end_return
+       
+     found_OH_end_return:
+        # Move back four bytes to start hour
+        addi $t6, $t1, -4
+        lb $t4, 0($t6)
+        beq  $t4, 45, first_number_two_digit_OH
+       
+        addi $t4, $t4, -48
+       
+        addi $t7, $t1, -5
+        lb $t5, 0($t7)
+       
+        bne  $t5, 32, two_digits_OH
+        j return_here_start_OH
+       
+        # Convert start hour from ASCII to integer
+      return_here_start_OH:
+   
+        li $t5, 1
+        li $t6, 2
+        li $t7, 3
+        li $t8, 4
+        li $t9, 5
+        beq $t4, $t5, add_12_start_OH
+        beq $t4, $t6, add_12_start_OH
+        beq $t4, $t7, add_12_start_OH
+        beq $t4, $t8, add_12_start_OH
+        beq $t4, $t9, add_12_start_OH
+        j found_OH_stat_return
+       
+      found_OH_stat_return:
+
+        # Calculate the duration of lectures for this line
+        sub $t5, $t3, $t4  # Calculate the difference (end time - start time)
+        add $t0, $t0, $t5        # Add the current difference to the running total
+       
+        j found_OH_newline  # Jump to found_newline after processing
+
+
+    two_digit_OH:
+       
+        addi $t4, $t4, -48
+        mul  $t4, $t4, 10
+        add  $t3, $t4, $t3
+       j found_OH_end_return
+       
+    two_digits_OH:
+        addi $t5, $t5, -48
+         mul  $t5, $t5, 10
+        add  $t4, $t4, $t5
+        j found_OH_stat_return
+           
+    add_12_end_OH:
+       
+        add $t3, $t3, 12  # Add 12 to the end hour
+        j found_OH_end_return
+
+    add_12_start_OH:
+       
+        add $t4, $t4, 12  # Add 12 to the start hour
+        j found_OH_stat_return
+
+    first_number_two_digit_OH:
+        addi $t6, $t1, -5
+        lb $t4, 0($t6)
+        addi $t4, $t4, -48
+       
+        addi $t7, $t1, -6
+        lb $t5, 0($t7)
+       
+        bne  $t5, 32, two_digits_OH
+        beq  $t5, 32, return_here_start_OH
+
+
+    found_OH_newline:
+        # Move to the next line (skip the newline character)
+        addi $t1, $t1, 1
+        # Continue the loop
+        j loop_OH
+
+    process_OH_exit:
+       
+        li $v0, 4          # system call for print_str
+        la $a0, number_of_OHs  # load address of the output message
+        syscall
+
+        li $v0, 1          # system call for print_int
+        move $a0, $t0      # load the value from register $t0
+        syscall
+
+        j exit_view_statistics_loop
+      #all the steps here is the same as the previous one but with changing the ascii code for the 'M' which is 77  
+number_of_Meetings:
+     # Load the address of the buffer into $t1
+    la $t1, buffer
+
+    li $t0, 0  # Register for total lecture hours
+
+    loop_M:
+        lb $t2, 0($t1)  # take one byte
+
+        # Check if the current character is newline '\n'
+        beq $t2, 10, found_M_newline
+       
+         # Check if the current character is the null terminator (end of the string)
+        beqz $t2, process_M_exit
+
+        # Check if the current character is 'M'
+        beq $t2, 77, found_M
+
+        # Move to the next character in the string
+        addi $t1, $t1, 1
+
+        # Continue the loop
+        j loop_M
+
+    found_M:
+        # Move back two bytes to end hour
+        addi $t6, $t1, -2
+        lb $t3, 0($t6)
+       
+        addi $t3, $t3, -48
+       
+        addi $t7, $t1, -3
+        lb $t4, 0($t7)
+        bne  $t4, 45, two_digit_M
+        j return_here_end_M
+       
+      return_here_end_M:  
+        # Check if the start hour is 1, 2, 3, 4, or 5
+        li $t5, 1
+        li $t6, 2
+        li $t7, 3
+        li $t8, 4
+        li $t9, 5
+        beq $t3, $t5, add_12_end_M
+        beq $t3, $t6, add_12_end_M
+        beq $t3, $t7, add_12_end_M
+        beq $t3, $t8, add_12_end_M
+        beq $t3, $t9, add_12_end_M
+        j found_M_end_return
+       
+     found_M_end_return:
+        # Move back four bytes to start hour
+        addi $t6, $t1, -4
+        lb $t4, 0($t6)
+        beq  $t4, 45, first_number_two_digit_M
+       
+        addi $t4, $t4, -48
+       
+        addi $t7, $t1, -5
+        lb $t5, 0($t7)
+       
+        bne  $t5, 32, two_digits_M
+        j return_here_start_M
+       
+        # Convert start hour from ASCII to integer
+      return_here_start_M:
+   
+        li $t5, 1
+        li $t6, 2
+        li $t7, 3
+        li $t8, 4
+        li $t9, 5
+        beq $t4, $t5, add_12_start_M
+        beq $t4, $t6, add_12_start_M
+        beq $t4, $t7, add_12_start_M
+        beq $t4, $t8, add_12_start_M
+        beq $t4, $t9, add_12_start_M
+        j found_M_stat_return
+       
+      found_M_stat_return:
+
+        # Calculate the duration of lectures for this line
+        sub $t5, $t3, $t4  # Calculate the difference (end time - start time)
+        add $t0, $t0, $t5        # Add the current difference to the running total
+       
+        j found_M_newline  # Jump to found_newline after processing
+
+
+    two_digit_M:
+       
+        addi $t4, $t4, -48
+        mul  $t4, $t4, 10
+        add  $t3, $t4, $t3
+       j found_M_end_return
+       
+    two_digits_M:
+        addi $t5, $t5, -48
+         mul  $t5, $t5, 10
+        add  $t4, $t4, $t5
+        j found_M_stat_return
+           
+    add_12_end_M:
+       
+        add $t3, $t3, 12  # Add 12 to the end hour
+        j found_M_end_return
+
+    add_12_start_M:
+       
+        add $t4, $t4, 12  # Add 12 to the start hour
+        j found_M_stat_return
+
+    first_number_two_digit_M:
+        addi $t6, $t1, -5
+        lb $t4, 0($t6)
+        addi $t4, $t4, -48
+       
+        addi $t7, $t1, -6
+        lb $t5, 0($t7)
+       
+        bne  $t5, 32, two_digits_M
+        beq  $t5, 32, return_here_start_M
+
+
+    found_M_newline:
+        # Move to the next line (skip the newline character)
+        addi $t1, $t1, 1
+        # Continue the loop
+        j loop_M
+
+    process_M_exit:
+       
+        li $v0, 4          # system call for print_str
+        la $a0, number_of_Meating  # load address of the output message
+        syscall
+
+        li $v0, 1          # system call for print_int
+        move $a0, $t0      # load the value from register $t0
+        syscall
+
+        j exit_view_statistics_loop
+       
+average_lectures_per_day:
+    # Load the address of the buffer into $t1
+    la $t1, buffer
+
+    li $t0, 0  # Register for total lecture hours
+    li $s3, 0 #register for count the number of days
+    loop_count_days:
+        lb $s1, 0($t1)  # take one byte
+
+        # Check if the current character is newline '\n'
+        beq $s1, 10, found_newline_count_days
+       
+         # Check if the current character is the null terminator (end of the string)
+        beqz $s1, process_count_days_exit
+        # Move to the next character in the string
+        addi $t1, $t1, 1
+
+        # Continue the loop
+        j loop_count_days
+         
+         
+    found_newline_count_days:
+        addi $s3, $s3, 1
+        # Move to the next line (skip the newline character)
+        addi $t1, $t1, 1
+        # Continue the loop
+        j loop_count_days
+       
+     process_count_days_exit:
+     
+        addi $s3, $s3, 1   # the finall number of days is in s3
+       
+        li $v0, 4          # system call for print_str
+        la $a0, number_of__count_days  # load address of the output message
+        syscall
+
+        li $v0, 1          # system call for print_int
+        move $a0, $s3      # load the value from register $t0
+        syscall
+       
+        la $t1, buffer
+        j loop_avg
+         
+    loop_avg:
+        lb $t2, 0($t1)  # take one byte
+
+        # Check if the current character is newline '\n'
+        beq $t2, 10, found_newline_avg
+       
+         # Check if the current character is the null terminator (end of the string)
+        beqz $t2, process_exit_avg
+
+        # Check if the current character is 'L'
+        beq $t2, 76, found_L_avg
+
+        # Move to the next character in the string
+        addi $t1, $t1, 1
+
+        # Continue the loop
+        j loop_avg
+
+    found_L_avg:
+        # Move back two bytes to end hour
+        addi $t6, $t1, -2
+        lb $t3, 0($t6)
+       
+        addi $t3, $t3, -48
+       
+        addi $t7, $t1, -3
+        lb $t4, 0($t7)
+        bne  $t4, 45, two_digit_avg
+        j return_here_end_avg
+       
+      return_here_end_avg:  
+        # Check if the start hour is 1, 2, 3, 4, or 5
+        li $t5, 1
+        li $t6, 2
+        li $t7, 3
+        li $t8, 4
+        li $t9, 5
+        beq $t3, $t5, add_12_end_avg
+        beq $t3, $t6, add_12_end_avg
+        beq $t3, $t7, add_12_end_avg
+        beq $t3, $t8, add_12_end_avg
+        beq $t3, $t9, add_12_end_avg
+        j found_L_end_return_avg
+       
+     found_L_end_return_avg:
+        # Move back four bytes to start hour
+        addi $t6, $t1, -4
+        lb $t4, 0($t6)
+        beq  $t4, 45, first_number_two_digit_avg
+       
+        addi $t4, $t4, -48
+       
+        addi $t7, $t1, -5
+        lb $t5, 0($t7)
+       
+        bne  $t5, 32, two_digits_avg
+        j return_here_start_avg
+       
+        # Convert start hour from ASCII to integer
+      return_here_start_avg:
+   
+        li $t5, 1
+        li $t6, 2
+        li $t7, 3
+        li $t8, 4
+        li $t9, 5
+        beq $t4, $t5, add_12_start_avg
+        beq $t4, $t6, add_12_start_avg
+        beq $t4, $t7, add_12_start_avg
+        beq $t4, $t8, add_12_start_avg
+        beq $t4, $t9, add_12_start_avg
+        j found_L_stat_return_avg
+       
+      found_L_stat_return_avg:
+
+        # Calculate the duration of lectures for this line
+        sub $t5, $t3, $t4  # Calculate the difference (end time - start time)
+        add $t0, $t0, $t5        # Add the current difference to the running total
+       
+        j found_newline_avg  # Jump to found_newline after processing
+
+
+    two_digit_avg:
+       
+        addi $t4, $t4, -48
+        mul  $t4, $t4, 10
+        add  $t3, $t4, $t3
+       j found_L_end_return_avg
+       
+    two_digits_avg:
+        addi $t5, $t5, -48
+         mul  $t5, $t5, 10
+        add  $t4, $t4, $t5
+        j found_L_stat_return_avg
+           
+    add_12_end_avg:
+       
+        add $t3, $t3, 12  # Add 12 to the end hour
+        j found_L_end_return_avg
+
+    add_12_start_avg:
+       
+        add $t4, $t4, 12  # Add 12 to the start hour
+        j found_L_stat_return_avg
+
+    first_number_two_digit_avg:
+        addi $t6, $t1, -5
+        lb $t4, 0($t6)
+        addi $t4, $t4, -48
+       
+        addi $t7, $t1, -6
+        lb $t5, 0($t7)
+       
+        bne  $t5, 32, two_digits_avg
+        beq  $t5, 32, return_here_start_avg
+
+
+    found_newline_avg:
+   
+        # Move to the next line (skip the newline character)
+        addi $t1, $t1, 1
+        # Continue the loop
+        j loop_avg
+       
+    process_exit_avg:
+   
+        # Print a newline
+        li $v0, 4          # system call number for print_str
+        la $a0, newline    # address of the newline character
+        syscall
+       
+        li $v0, 4          # system call for print_str
+        la $a0, number_of_Lecture_for_avg  # load address of the output message
+        syscall
+
+        li $v0, 1          # system call for print_int
+        move $a0, $t0      # load the value from register $t0
+        syscall
+       
+        # Print a newline
+        li $v0, 4          # system call number for print_str
+        la $a0, newline    # address of the newline character
+        syscall
+       
+       
+       
+       
+       
+       
+         # Print a newline
+        li $v0, 4          # system call number for print_str
+        la $a0, newline    # address of the newline character
+        syscall
+       
+        # Load the integer values into floating-point registers
+        mtc1 $s3, $f0    # Move the value in $s3 to $f0
+        mtc1 $t0, $f2    # Move the value in $t0 to $f2
+
+        # Perform floating-point division
+        div.s $f4, $f2, $f0   # Divide $f0 by $f2 and store the result in $f4
+       
+        li $v0, 4          # system call for print_str
+        la $a0, average_lectures_per_days  # load address of the output message
+        syscall
+
+         # Print the floating-point result
+         li $v0, 2               # system call for print_float
+         mov.s $f12, $f4         # move the result to $f12
+         syscall
+
+        j exit_view_statistics_loop
+
+ratio_between_hours_lectures_OH:
+   
+    # Load the address of the buffer into $t1
+    la $t1, buffer
+
+    li $t0, 0  # Register for total lecture hours
+
+    loop_ratio:
+        lb $t2, 0($t1)  # take one byte
+
+        # Check if the current character is newline '\n'
+        beq $t2, 10, found_newline_ratio
+       
+         # Check if the current character is the null terminator (end of the string)
+        beqz $t2, process_exit_ratio
+
+        # Check if the current character is 'L'
+        beq $t2, 76, found_L_ratio
+
+        # Move to the next character in the string
+        addi $t1, $t1, 1
+
+        # Continue the loop
+        j loop_ratio
+
+    found_L_ratio:
+        # Move back two bytes to end hour
+        addi $t6, $t1, -2
+        lb $t3, 0($t6)
+       
+        addi $t3, $t3, -48
+       
+        addi $t7, $t1, -3
+        lb $t4, 0($t7)
+        bne  $t4, 45, two_digit_ratio
+        j return_here_end_ratio
+       
+      return_here_end_ratio:  
+        # Check if the start hour is 1, 2, 3, 4, or 5
+        li $t5, 1
+        li $t6, 2
+        li $t7, 3
+        li $t8, 4
+        li $t9, 5
+        beq $t3, $t5, add_12_end_ratio
+        beq $t3, $t6, add_12_end_ratio
+        beq $t3, $t7, add_12_end_ratio
+        beq $t3, $t8, add_12_end_ratio
+        beq $t3, $t9, add_12_end_ratio
+        j found_L_end_return_ratio
+       
+     found_L_end_return_ratio:
+        # Move back four bytes to start hour
+        addi $t6, $t1, -4
+        lb $t4, 0($t6)
+        beq  $t4, 45, first_number_two_digit_ratio
+       
+        addi $t4, $t4, -48
+       
+        addi $t7, $t1, -5
+        lb $t5, 0($t7)
+       
+        bne  $t5, 32, two_digits_ratio
+        j return_here_start_ratio
+       
+        # Convert start hour from ASCII to integer
+      return_here_start_ratio:
+   
+        li $t5, 1
+        li $t6, 2
+        li $t7, 3
+        li $t8, 4
+        li $t9, 5
+        beq $t4, $t5, add_12_start_ratio
+        beq $t4, $t6, add_12_start_ratio
+        beq $t4, $t7, add_12_start_ratio
+        beq $t4, $t8, add_12_start_ratio
+        beq $t4, $t9, add_12_start_ratio
+        j found_L_stat_return_ratio
+       
+      found_L_stat_return_ratio:
+
+        # Calculate the duration of lectures for this line
+        sub $t5, $t3, $t4  # Calculate the difference (end time - start time)
+        add $t0, $t0, $t5        # Add the current difference to the running total
+       
+        j found_newline_ratio  # Jump to found_newline after processing
+
+
+    two_digit_ratio:
+       
+        addi $t4, $t4, -48
+        mul  $t4, $t4, 10
+        add  $t3, $t4, $t3
+       j found_L_end_return_ratio
+       
+    two_digits_ratio:
+        addi $t5, $t5, -48
+         mul  $t5, $t5, 10
+        add  $t4, $t4, $t5
+        j found_L_stat_return_ratio
+           
+    add_12_end_ratio:
+       
+        add $t3, $t3, 12  # Add 12 to the end hour
+        j found_L_end_return_ratio
+
+    add_12_start_ratio:
+       
+        add $t4, $t4, 12  # Add 12 to the start hour
+        j found_L_stat_return_ratio
+
+    first_number_two_digit_ratio:
+        addi $t6, $t1, -5
+        lb $t4, 0($t6)
+        addi $t4, $t4, -48
+       
+        addi $t7, $t1, -6
+        lb $t5, 0($t7)
+       
+        bne  $t5, 32, two_digits_ratio
+        beq  $t5, 32, return_here_start_ratio
+
+
+    found_newline_ratio:
+        # Move to the next line (skip the newline character)
+        addi $t1, $t1, 1
+        # Continue the loop
+        j loop_ratio
+
+    process_exit_ratio:
+       
+        li $v0, 4          # system call for print_str
+        la $a0, number_of_Lecture  # load address of the output message
+        syscall
+
+        li $v0, 1          # system call for print_int
+        move $a0, $t0      # load the value from register $t0
+        syscall
+       
+        move $s2, $t0  #move value from t0 to s6
+     
+         # Print a newline
+        li $v0, 4          # system call number for print_str
+        la $a0, newline    # address of the newline character
+        syscall
+         
+      # Load the address of the buffer into $t1
+    la $t1, buffer
+
+    li $t0, 0  # Register for total lecture hours
+
+    loop_OH_ratio:
+        lb $t2, 0($t1)  # take one byte
+
+        # Check if the current character is newline '\n'
+        beq $t2, 10, found_OH_newline_ratio
+       
+         # Check if the current character is the null terminator (end of the string)
+        beqz $t2, process_OH_exit_ratio
+
+        # Check if the current character is 'O'
+        beq $t2, 79, found_OH_ratio
+
+        # Move to the next character in the string
+        addi $t1, $t1, 1
+
+        # Continue the loop
+        j loop_OH_ratio
+
+    found_OH_ratio:
+        # Move back two bytes to end hour
+        addi $t6, $t1, -2
+        lb $t3, 0($t6)
+       
+        addi $t3, $t3, -48
+       
+        addi $t7, $t1, -3
+        lb $t4, 0($t7)
+        bne  $t4, 45, two_digit_OH_ratio
+        j return_here_end_OH_ratio
+       
+      return_here_end_OH_ratio:  
+        # Check if the start hour is 1, 2, 3, 4, or 5
+        li $t5, 1
+        li $t6, 2
+        li $t7, 3
+        li $t8, 4
+        li $t9, 5
+        beq $t3, $t5, add_12_end_OH_ratio
+        beq $t3, $t6, add_12_end_OH_ratio
+        beq $t3, $t7, add_12_end_OH_ratio
+        beq $t3, $t8, add_12_end_OH_ratio
+        beq $t3, $t9, add_12_end_OH_ratio
+        j found_OH_end_return_ratio
+       
+     found_OH_end_return_ratio:
+        # Move back four bytes to start hour
+        addi $t6, $t1, -4
+        lb $t4, 0($t6)
+        beq  $t4, 45, first_number_two_digit_OH_ratio
+       
+        addi $t4, $t4, -48
+       
+        addi $t7, $t1, -5
+        lb $t5, 0($t7)
+       
+        bne  $t5, 32, two_digits_OH_ratio
+        j return_here_start_OH_ratio
+       
+        # Convert start hour from ASCII to integer
+      return_here_start_OH_ratio:
+   
+        li $t5, 1
+        li $t6, 2
+        li $t7, 3
+        li $t8, 4
+        li $t9, 5
+        beq $t4, $t5, add_12_start_OH_ratio
+        beq $t4, $t6, add_12_start_OH_ratio
+        beq $t4, $t7, add_12_start_OH_ratio
+        beq $t4, $t8, add_12_start_OH_ratio
+        beq $t4, $t9, add_12_start_OH_ratio
+        j found_OH_stat_return_ratio
+       
+      found_OH_stat_return_ratio:
+
+        # Calculate the duration of lectures for this line
+        sub $t5, $t3, $t4  # Calculate the difference (end time - start time)
+        add $t0, $t0, $t5        # Add the current difference to the running total
+       
+        j found_OH_newline_ratio  # Jump to found_newline after processing
+
+
+    two_digit_OH_ratio:
+       
+        addi $t4, $t4, -48
+        mul  $t4, $t4, 10
+        add  $t3, $t4, $t3
+       j found_OH_end_return_ratio
+       
+    two_digits_OH_ratio:
+        addi $t5, $t5, -48
+         mul  $t5, $t5, 10
+        add  $t4, $t4, $t5
+        j found_OH_stat_return_ratio
+           
+    add_12_end_OH_ratio:
+       
+        add $t3, $t3, 12  # Add 12 to the end hour
+        j found_OH_end_return_ratio
+
+    add_12_start_OH_ratio:
+       
+        add $t4, $t4, 12  # Add 12 to the start hour
+        j found_OH_stat_return_ratio
+
+    first_number_two_digit_OH_ratio:
+        addi $t6, $t1, -5
+        lb $t4, 0($t6)
+        addi $t4, $t4, -48
+       
+        addi $t7, $t1, -6
+        lb $t5, 0($t7)
+       
+        bne  $t5, 32, two_digits_OH_ratio
+        beq  $t5, 32, return_here_start_OH_ratio
+
+
+    found_OH_newline_ratio:
+        # Move to the next line (skip the newline character)
+        addi $t1, $t1, 1
+        # Continue the loop
+        j loop_OH_ratio
+
+    process_OH_exit_ratio:
+       
+        li $v0, 4          # system call for print_str
+        la $a0, number_of_OHs  # load address of the output message
+        syscall
+
+        li $v0, 1          # system call for print_int
+        move $a0, $t0      # load the value from register $t0
+        syscall
+       
+        move $s1, $t0  #move from t0 to s7
+                               
+         # Print a newline
+        li $v0, 4          # system call number for print_str
+        la $a0, newline    # address of the newline character
+        syscall
+       
+     # Load the integer values into floating-point registers
+    mtc1 $s2, $f0    # Move the value in $s2 to $f0
+    mtc1 $s1, $f2    # Move the value in $s3 to $f2
+
+        # Perform floating-point division
+    div.s $f4, $f2, $f0   # Divide $f0 by $f2 and store the result in $f4
+       
+    li $v0, 4          # system call for print_str
+    la $a0, ratio_between_hours_lectures_and_OH  # load address of the output message
+    syscall
+
+         # Print the floating-point result
+    li $v0, 2               # system call for print_float
+    mov.s $f12, $f4         # move the result to $f12
+    syscall
+
+        j exit_view_statistics_loop
+
+   
+   
+exit_view_statistics_menu:
+   # Return to the main menu
+   j main
+
+ 
+ 
+ 
+ #----------------------------------------------------------------  view statistics end --------------------------------------------------------
+    larger_than_311:
+    # Print string for day larger than the limit
+    li $v0, 4            # syscall code for print string
+    la $a0, number_of_day_check_limit # load address of the prompt for day
+    syscall
+    j add_appointment
+   
+    add_appointment:
+    #t3 last number in line to compare the first number enter by user
+    #t0 number of day
+    #t4 first hour enter by user
+    #t7 last ------------------
+    #t8 type enter by user
+   
+
+    li $t4, 0   # Set $t4 to zero
+li $t7, 0   # Set $t7 to zero
+li $t8, 0
+    # Print a message to indicate the start of the appointment addition
+    li $v0, 4
+    la $a0, start_message
+    syscall
+ # Prompt user for day number
+    li $v0, 4            # syscall code for print string
+    la $a0, prompt_day   # load address of the prompt for day
+    syscall
+   
+    li $v0, 5            # syscall code for read integer
+    syscall
+    move $t0, $v0        # store day number in $t0
+ 
+    li $t1, 31           # Load the threshold value (31) into $t1
+    bgt $t0, $t1, larger_than_311
+   
+
+
+
+
+    # Open the input file for reading
+    li $v0, 13             # syscall for open file
+    la $a0, filename       # input file name
+    li $a1, 0              # flags: O_RDONLY
+    li $a2, 0              # mode: not needed for reading
+    syscall
+    move $s0, $v0          # save input file descriptor
+        # Read file
+    li $v0, 14         # system call number for read
+    move $a0, $s0      # file descriptor
+    la $a1, buffer    # buffer to store read data
+    li $a2, 1024       # number of bytes to read
+    syscall
+        # Close the input file
+    li $v0, 16         # syscall for close file
+    move $a0, $s0      # file descriptor
+    syscall
+
+    la $t5 ,buffer_to_exit_day
+    # Load the address of the buffer into $t1
+    la $t1, buffer    #FILE CONTENT
+    #la $s4, partbuffer
+      la $a3, buffer_FILE_W
+      la $a2, buffer_FILE_LAST
+    # Search for the day in the buffer
+    li $t3, 0
+   
+search_loop_add_appointment:
+    lb $t2, 0($t1)      # load a byte from the buffer
+   
+    sb $t2, 0($t5)
+    addi $t5, $t5, 1
+   
+    beqz $t2, not_found_add_appointment    # branch if equal to zero if end of the string, day not found end of line
+    beq $t2, 10, reset_add_appointment  #his instruction branches to the reset label if the value in register $t2 is equal to 10. In ASCII, the decimal value 10 corresponds to the newline character ('\n'
+    # Check for colon ':' and extract the day number
+    beq $t2, 58, extract_day_add_appointment # This section of your code is checking if the byte loaded from the buffer ($t2) is equal to the ASCII code of the colon character ':' (decimal value 58). If it is, it means that you are processing the part of the string that contains the day number.
+    sub $t2, $t2, 48      # convert ASCII to integer
+    mul $t3, $t3, 10      # shift previous digits left
+    add $t3, $t3, $t2     # add current digit
+    addi $t1, $t1, 1      # move to the next character in the buffer
+    j search_loop_add_appointment
+   
+reset_add_appointment:
+    li $t3, 0
+    addi,$t1,$t1,1
+    j search_loop_add_appointment
+   
+extract_day_add_appointment:
+    addi, $t1,$t1,1
+    bne $t0, $t3, search_loop_add_appointment
+    li $v0, 4
+    la $a0, successs_msg_add_appointment
+    syscall
+    #print new line
+    li $v0, 4      
+la $a0, newline      
+syscall
+    j print_to_buffer #-------------------
+ 
+print_to_buffer:
+   beq $t2, 10,print_bufu  
+    lb $t2, 0($t1)
+     # Save the character to the buffer
+    sb $t2, 0($t5) # t4 sec_buffer has the line of number data
+    addi $t5, $t5, 1
+   
+    sb $t2, 0($a3) # t4 sec_buffer has the line of number data
+    addi $a3, $a3, 1
+   
+    addi $t1, $t1, 1      # move to the next character in the buffer
+    j print_to_buffer
+   
+print_bufu:
+
+    #addi $t1, $t1, 1  
+     li $v0, 4
+    la $a0, buffer_FILE_W
+    syscall  
+   
+j end_copy_str2
+
+end_copy_str2:
+#continue copying rest of lines
+lb $t2,0($t1)
+sb $t2, 0($a2)
+        addi $a2, $a2, 1
+        addi $t1, $t1, 1
+        beq $t2, 0, reverse_iterate_buffer
+        j end_copy_str2
+
+
+
+reverse_iterate_buffer:
+    subi $t5, $t5, 1      # Move to the previous character in the buffer
+    lb $t3, 0($t5)        # Load the current character from the buffer
+    # Check if the character is a dash
+    li $t7, 45            # ASCII code for hyphen character
+    beq $t3, $t7, end_search_reverse  # If dash is encountered, end the search
+    bnez $t5, reverse_iterate_buffer  # Continue reverse iteration if not at the start of the buffer
+    j end_search_reverse
+
+end_search_reverse:
+    add $t5, $t5, 1
+    lb $t3, 0($t5)
+    add $t5, $t5, 1
+    lb $t2, 0($t5)
+    li $t7, 32            # ASCII code for space character
+    beq $t2, $t7, is_spac
+    # Convert ASCII to integer for $t3
+    subi $t3, $t3, 48      # Convert ASCII to integer
+    # Multiply $t3 by 10 to make room for the tens place
+    mul $t3, $t3, 10
+    # Convert ASCII to integer for $t2
+    subi $t2, $t2, 48      # Convert ASCII to integer
+    # Add $t2 to $t3 to complete the number
+    add $t3, $t3, $t2
+j  validate_first_time_to_exit_day
+
+is_spac:
+    subi $t3, $t3, 48      # Convert ASCII to integer
+j  validate_first_time_to_exit_day
+
+validate_first_time_to_exit_day:
+    li $v0, 4            # syscall code for print string
+    la $a0,  firstHour_exit_day # load address of the prompt for slot
+    syscall
+    # Read integer from the user
+    li $v0, 5            # syscall code for read integer
+    syscall
+    move $t4, $v0        # store the entered integer in $t4
+    j validate_first_slot_exit_day
+   
+validate_first_slot_exit_day:
+    # Check if t6 is in the range [1, 5] and add 12 if true
+    li $s5, 1
+    li $t6, 5
+    bge $t4, $s5, check_add_12_first_exit_day
+    b check_done_first_exit_day
+
+check_add_12_first_exit_day:
+    ble $t4, $t6, add_12_first_exit_day
+    bge $t4, $t6, check_done_first_exit_day
+   
+add_12_first_exit_day:
+    addi $t4, $t4, 12
+    j check_done_first_exit_day
+   
+check_done_first_exit_day:
+    li $t9, 1
+    beq $t3, $t9, ad_t3_lastF
+    li $t9, 2
+    beq $t3, $t9, ad_t3_lastF
+    li $t9, 3
+    beq $t3, $t9, ad_t3_lastF
+    li $t9, 4
+    beq $t3, $t9, ad_t3_lastF
+    li $t9, 5
+    beq $t3, $t9, ad_t3_lastF  
+    # Check if the first time is between 8 am and 5 pm
+    ble $t4, $t3, error_less
+    bge $t4, 17, eror_large_f
+    li $v0, 4
+    la $a0, time_approve
+    syscall    
+    j last_hour_exist_day
+   
+error_less:
+      li $v0, 4
+    la $a0, err_less
+    syscall  
+   j validate_first_time_to_exit_day
+
+eror_large_f:
+    li $v0, 4
+    la $a0, err_large_five
+    syscall
+    j validate_first_time_to_exit_day
+   
+ad_t3_lastF:
+   li $t9, 12
+   add $t3, $t3, $t9
+j check_done_first_exit_day
+
+
+
+last_hour_exist_day:
+ # Ask user to enter the last time
+    li $v0, 4
+    la $a0, Last_time_slot
+    syscall
+    # Read user input for the last time
+    li $v0, 5
+    syscall
+    move $t7, $v0  # Save the entered last time in $t7
+    # Validate and adjust the last time
+    j validate_last_time_exit_day
+   
+validate_last_time_exit_day:
+        # Check if t7 is in the range [1, 5] and add 12 if true
+    li $t8, 1
+    li $s5, 5
+    bge $t7, $t8, check_add_12_last_exit_day
+    b check_done_last_exit_day
+
+check_add_12_last_exit_day:
+    ble $t7, $s5, add_12_last_exit_day
+    bge $t7, $s5, check_done_last_exit_day
+add_12_last_exit_day:
+    addi $t7, $t7, 12
+    # Check if last time is before first time
+    ble $t7, $t4, invalid_slot_LESSS_exit_day
+    j check_done_last_exit_day
+       
+check_done_last_exit_day:
+    # Check if the last time is between 8 am and 5 pm
+    ble $t7, 8, invalid_last_time_exit_day
+    bgt $t7, 17, invalid_last_time_exit_day
+    ble $t7, $t4, invalid_slot_LESSS_exit_day
+
+    li $v0, 4
+    la $a0, time_approve
+    syscall
+    jal  type#-----------------
+ 
+    j TO_ADD_TO_BUF
+   
+TO_ADD_TO_BUF:
+        addi $t5, $t5, 3
+#T4 T7 T8
+#la $t2,add_appo_buff  # Load the address of the buffer into $t0
+#lb $t3, 0($s4)          # Load the first character of the buffer
+         jal store_comma  
+jal store_spaceE
+       
+move $t0, $t4
+jal convertTo_AsciiE
+jal store_dashE
+move $t0, $t7
+jal convertTo_AsciiE
+jal store_spaceE
+jal store_typeE
+j print_appointmentStringE
+
+store_comma:
+    li $t2, 44          # Load ASCII code for comma into $t2
+    sb $t2, 0($t5)      # Store comma character at the address pointed to by $a3
+    addi $t5, $t5, 1
+    jr $ra
+subt12E:
+ sub $t0, $t0, 12
+ j convertTo_AsciiE
+convertTo_AsciiE:
+
+# Convert tens digit to ASCII
+        li $t4, 10              # Divisor for tens digit
+        li $s3, 13
+    beq $t0, $s3, subt12E
+    li $s3, 14
+    beq $t0, $s3, subt12E
+    li $s3, 15
+    beq $t0, $s3, subt12E
+    li $s3, 16
+    beq $t0, $s3, subt12E
+    li $s3, 17
+    beq $t0, $s3, subt12E
+   
+        div $t0, $t4            # Divide start time (s0) by 10
+        mflo $a0                # Quotient is the tens digit
+        addi $a0, $a0, 48 # Convert to ASCII
+        beqz $a0, onesE # if tens is zero, num is one digit
+        sb $a0, 0($t5)          # Store in buffer
+        addi $t5, $t5, 1        # Move to the next position in the buffer
+       
+onesE:
+# Convert units digit to ASCII and print
+        mfhi $a0                # Remainder is the units digit
+        addi $a0, $a0, 48       # Convert to ASCII
+        sb $a0, 0($t5)
+        addi $t5, $t5, 1
+        jr $ra
+       
+       
+store_dashE:
+li $a0, 45     # 45 is ascii of -
+        sb $a0, 0($t5)
+        addi $t5, $t5, 1
+        jr $ra
+       
+store_spaceE:
+li $a0, 32   # 32 is ascii is space
+        sb $a0, 0($t5)
+        addi $t5, $t5, 1
+        jr $ra
+
+Store_commaE:
+li $a0, 44   # 44 is ascii is space
+        sb $a0, 0($t5)
+        addi $t5, $t5, 1
+        jr $ra
+
+
+store_typeE:
+li $t1, 'O'
+beq $t8, $t1, ITS_OE
+sb $t8, 0($t5)
+addi $t5, $t5, 1
+
+jr $ra
+ITS_OE:
+        sb $t8, 0($t5)
+addi $t5, $t5, 1
+li $t8, 72               # ASCII code for 'H'
+        sb $t8, 0($t5)
+         j  print_appointmentStringE
+
+   
+   
+
+
+
+ print_appointmentStringE:
+ 
+    #print new line
+    li $v0, 4      
+la $a0, newline      
+syscall
+
+      li $v0, 4            # syscall code for print string
+      la $a0, WRITE_FILE # load address of the prompt for slot
+      syscall
+
+li $v0, 4
+la $a0, buffer_to_exit_day
+syscall
+
+    #print new line
+    li $v0, 4      
+la $a0, newline      
+syscall
+
+li $v0, 4
+la $a0, buffer_FILE_LAST
+syscall
+
+#print new line
+    li $v0, 4      
+la $a0, newline      
+syscall
+
+   # Open the file for writing, truncating its contents (syscall 13)
+    li $v0, 13          # syscall 13: open file
+    la $a0, filename    # load address of filename into $a0
+    li $a1, 1           # file flags: 1 for write
+    li $a2, 385         # file mode: O_WRONLY | O_TRUNC
+    syscall
+    sw $v0, file_d      # store the file descriptor
+
+    # Optionally, you can write something to the file (e.g., a newline character)
+    li $v0, 15          # syscall 15: write to file
+    lw $a0, file_d      # load file descriptor from memory
+    la $a1,spac     # load the address of the newline character into $a1
+    li $a2, 0          # number of bytes to write (newline character)
+    syscall
+
+    # Close the file (syscall 16)
+    li $v0, 16          # syscall 16: close file
+    lw $a0, file_d      # load file descriptor from memory
+    syscall
+   
+ # Open the file for writing, truncating its contents or creating it if it doesn't exist (syscall 13)
+    li $v0, 13          # syscall 13: open file
+    la $a0, filename    # load address of filename into $a0
+    li $a1, 9           # file flags: 1 for write, 0 for read
+    li $a2, 0      # file mode: O_WRONLY | O_TRUNC | O_CREAT
+    syscall
+    sw $v0, file_d      # store the file descriptor
+
+
+    # Print the contents of the buffer to the file
+    li $v0, 15          # syscall 15: write to file
+    lw $a0, file_d      # load file descriptor from memory
+    la $a1, buffer_to_exit_day    # load the address of the buffer into $a1
+    li $a2, 600          # number of bytes to write (adjust based on your buffer size)
+    syscall
+    # Write a newline character to the file
+    li $v0, 15          # syscall 15: write to file
+    lw $a0, file_d      # load file descriptor from memory
+    la $a1, newline     # load the address of the newline character into $a1
+    li $a2, 1           # number of bytes to write (newline character)
+    syscall
+
+    # Print the contents of the buffer to the file
+    li $v0, 15          # syscall 15: write to file
+    lw $a0, file_d      # load file descriptor from memory
+    la $a1, buffer_FILE_LAST    # load the address of the buffer into $a1
+    li $a2, 600          # number of bytes to write (adjust based on your buffer size)
+    syscall
+
+    # Close the file (syscall 16)
+    li $v0, 16          # syscall 16: close file
+    lw $a0, file_d      # load file descriptor from memory
+    syscall
+
+j menu_loop
+
+
+   
+invalid_slot_LESSS_exit_day:
+  # Display error message for invalid time
+    li $v0, 4
+    la $a0, lerr_less
+     syscall
+    j last_hour_exist_day
+
+invalid_last_time_exit_day:
+    # Display error message for invalid time
+    li $v0, 4
+    la $a0, not_betw
+    syscall
+    j last_hour_exist_day
+
+   
+
+   
+#----------------------------------------------------------------------------        
+not_found_add_appointment:
+    li $v0, 4
+    la $a0, failure_msg_add_appointment
+    syscall
+     li $v0, 4
+    la $a0, day_you_entered
+    syscall
+     # Print the integer entered by the user
+    li $v0, 1            # syscall code for print integer
+    move $a0, $t0        # load the integer to be printed
+    syscall
+   
+    la $t2, add_appo_buff
+    sb $zero, 0($t2)
+    # Convert tens digit to ASCII
+    li $t4, 10              # Divisor for tens digit
+    div $t0, $t4            # Divide start time (s0) by 10
+    mflo $a0                # Quotient is the tens digit
+    addi $a0, $a0, 48       # Convert to ASCII
+    beqz $a0, one            # If tens is zero, num is one digit
+    sb $a0, 0($t2)          # Store in buffer
+    addi $t2, $t2, 1         # Move to the next position in the buffer
+
+ 
+
+one:
+    # Convert units digit to ASCII and print
+    mfhi $a0                # Remainder is the units digit
+    addi $a0, $a0, 48       # Convert to ASCII
+    sb $a0, 0($t2)
+    addi $t2, $t2, 1
+   
+       # Add a colon to the buffer
+    li $a0, 58               # ASCII code for colon (':')
+    sb $a0, 0($t2)
+    addi $t2, $t2, 1         # Move to the next position in the buffer
+   
+    li $v0, 4            # syscall code for print string
+    la $a0, prompt_slot  # load address of the prompt for slot
+    syscall
+   
+first_time_add_appointment:
+    li $v0, 4            # syscall code for print string
+    la $a0, First_time_slot  # load address of the prompt for slot
+    syscall
+    # Read integer from the user
+    li $v0, 5            # syscall code for read integer
+    syscall
+    move $t4, $v0        # store the entered integer in $t2
+   j validate_first_slot
+
+validate_first_slot:
+    # Check if t6 is in the range [1, 5] and add 12 if true
+    li $s5, 1
+    li $t6, 5
+    bge $t4, $s5, check_add_12_first_appointmet
+    b check_done_first_appointmet
+
+check_add_12_first_appointmet:
+    ble $t4, $t6, add_12_first_appointmet
+    bge $t4, $t6, check_done_first_appointmet
+   
+add_12_first_appointmet:
+    addi $t4, $t4, 12
+    j check_done_first_appointmet
+   
+check_done_first_appointmet:
+    # Check if the first time is between 8 am and 5 pm
+    blt $t4, 8, error_Add_appointment_first
+    bge $t4, 17, error_Add_appointment_first
+   
+
+    li $v0, 4
+    la $a0, time_approve
+    syscall
+
+    j get_last_time_Add_appointment
+
+error_Add_appointment_first:
+    # Display error message for invalid time
+    li $v0, 4
+    la $a0, error_slot_Add_appointment
+    syscall
+    j first_time_add_appointment
+   
+       
+get_last_time_Add_appointment:
+  # Ask user to enter the last time
+    li $v0, 4
+    la $a0, Last_time_slot
+    syscall
+    # Read user input for the last time
+    li $v0, 5
+    syscall
+    move $t7, $v0  # Save the entered last time in $t7
+    # Validate and adjust the last time
+    j validate_last_time_add_appointment
+
+validate_last_time_add_appointment:
+    # Check if t7 is in the range [1, 5] and add 12 if true
+    li $t8, 1
+    li $s5, 5
+    bge $t7, $t8, check_add_12_last_add_appointment
+    b check_done_last_add_appointment
+
+check_add_12_last_add_appointment:
+    ble $t7, $s5, add_12_last_add_appointment
+    bge $t7, $s5, check_done_last_add_appointment
+add_12_last_add_appointment:
+    addi $t7, $t7, 12
+    # Check if last time is before first time
+    ble $t7, $t4, invalid_slot_LESSS_add_appointment
+    j check_done_last_add_appointment
+       
+check_done_last_add_appointment:
+    # Check if the last time is between 8 am and 5 pm
+    ble $t7, 8, invalid_last_time_add_appointment
+    bgt $t7, 17, invalid_last_time_add_appointment
+    ble $t7, $t4, invalid_slot_LESSS_add_appointment
+
+    li $v0, 4
+    la $a0, time_approve
+    syscall
+    j  type#-----------------
+   
+invalid_slot_LESSS_add_appointment:
+  # Display error message for invalid time
+    li $v0, 4
+    la $a0, error_slot_Add_appointments
+    j get_last_time_Add_appointment
+
+invalid_last_time_add_appointment:
+    # Display error message for invalid time
+    li $v0, 4
+    la $a0, error_slot_Add_appointment
+    syscall
+    j get_last_time_Add_appointment
+ 
+type:
+ # Print prompt
+li $v0, 4
+la $a0, enter_type
+syscall
+
+li $v0, 12           # syscall code for read character
+syscall
+move $t8, $v0
+
+# Check if the entered character is equal to 'L', 'O', or 'M'
+li $t1, 'L'
+beq $t8, $t1, true_type_A
+
+li $t1, 'O'
+beq $t8, $t1, true_type_A
+
+li $t1, 'M'
+beq $t8, $t1, true_type_A
+
+# If none of the conditions are met, it's an invalid type
+j invalid_type
+
+
+invalid_type:
+
+    li $v0, 4            # syscall code for print string
+    la $a0,false_type  # load address of the prompt for slot
+    syscall
+j type
+true_type_A:
+
+    li $v0, 4            # syscall code for print string
+    la $a0, true_type  # load address of the prompt for slot
+    syscall
+   # jr $ra
+j ask
+
+ask:
+    li $v0, 4            # syscall code for print string
+    la $a0, question  # load address of the prompt for slot
+    syscall
+    # Read a single character from the user
+    li $v0, 12           # syscall code for read character
+    syscall
+    move $t0, $v0
+    #print new line
+    li $v0, 4      
+la $a0, newline      
+syscall
+    li $t1, 'Y'          # ASCII value for 'Y'
+    beq $t0, $t1, is_Y    # branch to is_Y if equaL
+    # Compare the entered character with 'N'
+    li $t1, 'N'          # ASCII value for 'N'
+    beq $t0, $t1, is_N    # branch to is_N if equal
+
+    j ask
+   
+is_Y:
+    # s0 has start time, s1 has end time, t7 has type
+ 
+#la $t2,add_appo_buff  # Load the address of the buffer into $t0
+lb $t3, 0($t2)          # Load the first character of the buffer
+         bnez $t3, buffer_no_empty # If the first character is not null, the buffer is not empty
+
+
+jal store_spaceY
+
+move $t0, $t4
+jal convertTo_AsciiY
+jal store_dashY
+
+move $t0, $t7
+jal convertTo_AsciiY
+jal store_spaceY
+jal store_typeY
+j print_appointmentStringY
+
+buffer_no_empty:
+
+jal Store_commaY
+
+subt122:
+ sub $t0, $t0, 12
+ j convertTo_AsciiY
+
+convertTo_AsciiY:
+# Convert tens digit to ASCII
+        li $t4, 10              # Divisor for tens digit
+        # Convert tens digit to ASCII
+        li $t4, 10              # Divisor for tens digit
+        li $s3, 13
+    beq $t0, $s3, subt122
+    li $s3, 14
+    beq $t0, $s3, subt122
+    li $s3, 15
+    beq $t0, $s3, subt122
+    li $s3, 16
+    beq $t0, $s3, subt122
+    li $s3, 17
+    beq $t0, $s3, subt122
+        div $t0, $t4            # Divide start time (s0) by 10
+        mflo $a0                # Quotient is the tens digit
+        addi $a0, $a0, 48 # Convert to ASCII
+        beqz $a0, onesY # if tens is zero, num is one digit
+        sb $a0, 0($t2)          # Store in buffer
+        addi $t2, $t2, 1        # Move to the next position in the buffer
+       
+onesY:
+# Convert units digit to ASCII and print
+        mfhi $a0                # Remainder is the units digit
+        addi $a0, $a0, 48       # Convert to ASCII
+        sb $a0, 0($t2)
+        addi $t2, $t2, 1
+        jr $ra
+       
+store_dashY:
+li $a0, 45     # 45 is ascii of -
+        sb $a0, 0($t2)
+        addi $t2, $t2, 1
+        jr $ra
+       
+store_spaceY:
+li $a0, 32   # 32 is ascii is space
+        sb $a0, 0($t2)
+        addi $t2, $t2, 1
+        jr $ra
+
+Store_commaY:
+li $a0, 44   # 44 is ascii is space
+        sb $a0, 0($t2)
+        addi $t2, $t2, 1
+        jr $ra
+
+
+store_typeY:
+       li $t1, 'O'
+        beq $t8, $t1, ITS_OY
+sb $t8, 0($t2)
+addi $t2, $t2, 1
+
+jr $ra
+ITS_OY:
+        sb $t8, 0($t2)
+addi $t2, $t2, 1
+
+li $t8, 72               # ASCII code for 'H'
+        sb $t8, 0($t2)
+        addi $t2, $t2, 1
+        li $a0, 44   # 44 is ascii is space
+        sb $a0, 0($t2)
+        addi $t2, $t2, 1
+        j print_appointmentStringY
+
+
+
+
+print_appointmentStringY:
+      li $v0, 4            # syscall code for print string
+      la $a0, WRITE_FILE # load address of the prompt for slot
+      syscall
+       
+li $v0, 4
+la $a0, add_appo_buff
+syscall
+#print new line
+    li $v0, 4      
+la $a0, newline      
+syscall
+
+
+j first_time_add_appointment
+is_N:
+
+# s0 has start time, s1 has end time, t7 has type
+#T4 T7 T8
+#la $t2,add_appo_buff  # Load the address of the buffer into $t0
+lb $t3, 0($t2)          # Load the first character of the buffer
+         bnez $t3, buffer_not_empty # If the first character is not null, the buffer is not empty
+jal store_space
+move $t0, $t4
+jal convertTo_Ascii
+jal store_dash
+move $t0, $t7
+jal convertTo_Ascii
+jal store_space
+jal store_type
+
+j print_appointmentString
+
+buffer_not_empty:
+jal Store_comma
+
+subt12:
+ sub $t0, $t0, 12
+ j convertTo_Ascii
+convertTo_Ascii:
+
+# Convert tens digit to ASCII
+        li $t4, 10              # Divisor for tens digit
+        li $s3, 13
+    beq $t0, $s3, subt12
+    li $s3, 14
+    beq $t0, $s3, subt12
+    li $s3, 15
+    beq $t0, $s3, subt12
+    li $s3, 16
+    beq $t0, $s3, subt12
+    li $s3, 17
+    beq $t0, $s3, subt12
+        div $t0, $t4            # Divide start time (s0) by 10
+        mflo $a0                # Quotient is the tens digit
+        addi $a0, $a0, 48 # Convert to ASCII
+        beqz $a0, ones # if tens is zero, num is one digit
+        sb $a0, 0($t2)          # Store in buffer
+        addi $t2, $t2, 1        # Move to the next position in the buffer
+       
+ones:
+# Convert units digit to ASCII and print
+        mfhi $a0                # Remainder is the units digit
+        addi $a0, $a0, 48       # Convert to ASCII
+        sb $a0, 0($t2)
+        addi $t2, $t2, 1
+        jr $ra
+       
+store_dash:
+li $a0, 45     # 45 is ascii of -
+        sb $a0, 0($t2)
+        addi $t2, $t2, 1
+        jr $ra
+       
+store_space:
+li $a0, 32   # 32 is ascii is space
+        sb $a0, 0($t2)
+        addi $t2, $t2, 1
+        jr $ra
+
+Store_comma:
+li $a0, 44   # 44 is ascii is space
+        sb $a0, 0($t2)
+        addi $t2, $t2, 1
+        jr $ra
+
+
+store_type:
+li $t1, 'O'
+beq $t8, $t1, ITS_O
+sb $t8, 0($t2)
+addi $t2, $t2, 1
+
+jr $ra
+ITS_O:
+        sb $t8, 0($t2)
+addi $t2, $t2, 1
+li $t8, 72               # ASCII code for 'H'
+        sb $t8, 0($t2)
+        j print_appointmentString
+
+
+print_appointmentString:
+      li $v0, 4            # syscall code for print string
+      la $a0, WRITE_FILE # load address of the prompt for slot
+      syscall
+       
+li $v0, 4
+la $a0, add_appo_buff
+syscall
+#print new line
+    li $v0, 4      
+la $a0, newline      
+syscall
+
+       # Open the file for writing (syscall 13)
+    li $v0, 13          # syscall 13: open file
+    la $a0, filename   # load address of filename into $a0
+    li $a1, 9   # file flags: 1 for write, 0 for read
+    li $a2, 0           # file mode: not needed when opening an existing file
+    syscall
+    sw $v0, file_d # store the file descriptor
+   
+       # Write a newline character to the file
+    li $v0, 15          # syscall 15: write to file
+    lw $a0, file_d      # load file descriptor from memory
+    la $a1, newline     # load the address of the newline character into $a1
+    li $a2, 1           # number of bytes to write (newline character)
+    syscall
+   
+    # Print the contents of the buffer to the file
+    li $v0, 15          # syscall 15: write to file
+    lw $a0, file_d  # load file descriptor from memory
+    la $a1, add_appo_buff      # load the address of the buffer into $a1
+    li $a2, 300    # number of bytes to write (adjust based on your buffer size)
+    syscall
+    # Close the file (syscall 16)
+    li $v0, 16          # syscall 16: close file
+    lw $a0, file_d  # load file descriptor from memory
+    syscall
+    li $v0, 4
+    la $a0, newline
+    syscall
+    sb $zero, 0($t2)
+    j  menu_loop
+#----------------------------------------------------------------------------------
+
+   
+    delete_appointment:
+   
+        la $t8, delet_buffe
+# Print the data in the file
+         li $v0, 4          # system call number for print_str
+         la $a0, data_msg   # address of the data message
+         syscall
+
+         # Open file for reading (to check if it exists)
+         li $v0, 13         # system call number for open
+         la $a0, filename   # load address of filename into $a0
+         li $a1, 0          # flag for reading (O_RDONLY)
+         li $a2, 0          # mode is ignored
+         syscall
+         move $s0, $v0      # save the file descriptor in $s0
+
+       read_and_print_data:
+        # Read file
+        li $v0, 14         # system call number for read
+        move $a0, $s0      # file descriptor
+        la $a1, buffer     # buffer to store read data
+        li $a2, 1024       # number of bytes to read
+        syscall
+            # Close the file (syscall 16)
+    li $v0, 16          # syscall 16: close file
+    move $a0, $s0      # load file descriptor from memory
+    syscall
+   
+        # Check if the read operation was successfu
+         bgez $v0, print__data_buffer
+           
+
+        print__data_buffer:
+    # Print the read data
+         li $v0, 4          # system call number for print_str
+         la $a0, buffer     # address of the buffer
+         syscall
+
+    # Print a newline
+         li $v0, 4          # system call number for print_str
+         la $a0, newline    # address of the newline character
+         syscall
+         j ask_for_day
+         
+           
+         
+       ask_for_day:    
+        li $v0, 4
+        la $a0, user_delete_day
+        syscall
+
+       # Read user input
+        li $v0, 5
+        syscall
+        move $s1, $v0  # Save the entered day number in $t0
+       
+        # Validate day range based on number of lines
+        bgt $s1, 30, invalid_input_day
+        blt $s1, 1, invalid_input_day
+       
+       ask_for_type:
+        li $v0, 4
+        la $a0, user_delete_type
+        syscall
+
+       # Read user input
+        li $v0, 12   #read character
+        syscall
+        move $s2, $v0  # Save the entered day number in $t0
+
+        # Check if the input is valid
+        beq $s2, 'L', next_step
+        beq $s2, 'M', next_step
+        beq $s2, 'O', next_step
+
+       
+
+        j invalid_input_type
+
+     invalid_input_type:
+        # User entered an invalid input
+        li $v0, 4
+        la $a0, invalid_type_input
+        syscall
+        j ask_for_type
+       
+     invalid_input_day:
+        # User entered invalid day, show error message
+        li $v0, 4
+        la $a0, invalid_day_input
+        syscall
+
+       j ask_for_day  
+     
+       
+
+     next_step:
+        # ...your code...
+        # Print a newline
+        li $v0, 4          # system call number for print_str
+        la $a0, newline    # address of the newline character
+        syscall
+       
+        # Ask user to enter the number of the day
+        li $v0, 4
+        la $a0, user_delete_start_slot
+        syscall
+
+       # Read user input
+        li $v0, 5
+        syscall
+        move $s3, $v0  # Save the entered day number in $t0
+       
+         # Ask user to enter the number of the day
+        li $v0, 4
+        la $a0, user_delete_end_slot
+        syscall
+
+       # Read user input
+        li $v0, 5
+        syscall
+        move $s4, $v0  # Save the entered day number in $t0
+     
+       la $t1, buffer
+     delete_loop:
+       lb $t2, 0($t1)  # take the second byte
+       
+       # Check if the current character is newline '\n'
+        beq $t2, 10, found_newline_delete
+       
+         # Check if the current character is the null terminator (end of the string)
+        beqz $t2, process_exit_delete
+
+       # check if the second byte is :
+         beq $t2, 58, two_digit_day
+
+        # Move to the next character in the string
+        addi $t1, $t1, 1
+
+        # Continue the loop
+        j delete_loop
+       
+      two_digit_day:
+        addi $t6, $t1, -2
+        lb $t3, 0($t6)
+        beq $t3, 0, one_digit_day
+        beq $t3, 10, one_digit_day
+       
+        addi $t3, $t3, -48  # convert the value from ascii to integer
+       
+        addi $t6, $t1, -1
+        lb $t4, 0($t6)
+        addi $t4, $t4, -48  # convert the value from ascii to integer
+       
+        mul $t5, $t3, 10
+        add $t5, $t3, $t4  # from this the day is saved in t5 as integer number
+       
+        beq $t5, $s1, check_type
+        j found_newline_delete
+       
+       
+      one_digit_day:
+        addi $t6, $t1, -1
+        lb $t4, 0($t6)
+        addi $t4, $t4, -48  # convert the value from ascii to integer
+        beq $t4, $s1, check_type
+        j found_newline_delete
+       
+      check_type:
+     
+         lb $t2, 0($t1)  # take one byte
+
+        # Check if the current character is newline '\n'
+        beq $t2, 10, found_newline_delete
+       
+         # Check if the current character is the null terminator (end of the string)
+        beqz $t2,  process_exit_delete
+
+        # Check if the current character is 'L'
+        beq $t2, $s2, found_type_delete
+       
+        # Move to the next character in the string
+        addi $t1, $t1, 1
+
+        # Continue the loop
+        j check_type
+       
+        found_type_delete:
+        addi $s5, $t1, 1
+        jal but_buf
+         # Move back two bytes to end hour
+        addi $t6, $t1, -2
+        lb $t3, 0($t6)
+       
+        addi $t3, $t3, -48
+       
+        addi $t7, $t1, -3
+        lb $t4, 0($t7)
+        bne  $t4, 45, two_digit_end_delete
+     
+        j found_type_end_return
+  but_buf:
+       addi $s5,$s5,1
+      lb $t3, 0($s5)
+     beqz $t3, skip_jr_ra
+      sb $t3, 0($t8)
+               # Store in buffer
+        addi $t8, $t8, 1  
+        j but_buf
+ 
+  skip_jr_ra:
+jr $ra          
+     found_type_end_return:
+        # Move back four bytes to start hour
+        addi $t6, $t1, -4
+        lb $t4, 0($t6)
+        beq  $t4, 45, first_number_two_digit_delete
+       
+        addi $t4, $t4, -48
+       
+        addi $t7, $t1, -5
+        lb $t5, 0($t7)
+       
+        bne  $t5, 32, two_digits_start_delete
+       
+        j found_type_stat_return
+       
+      found_type_stat_return:
+
+        # Calculate the duration of lectures for this line
+        beq  $t3, $s4, check_start_slot  # check the end slot
+       
+        j found_newline_delete  # Jump to found_newline after processing
+
+     check_start_slot:
+         beq  $t4, $s3, delete_portions # check the start slot
+        j found_newline_delete
+       
+    two_digit_end_delete:
+       
+        addi $t4, $t4, -48
+        mul  $t4, $t4, 10
+        add  $t3, $t4, $t3
+       j found_type_end_return
+       
+    two_digits_start_delete:
+        addi $t5, $t5, -48
+         mul  $t5, $t5, 10
+        add  $t4, $t4, $t5
+        j found_type_stat_return
+       
+     first_number_two_digit_delete:
+        addi $t6, $t1, -5
+        lb $t4, 0($t6)
+        addi $t4, $t4, -48
+       
+        addi $t7, $t1, -6
+        lb $t5, 0($t7)
+       
+        bne  $t5, 32, two_digits_start_delete
+        beq  $t5, 32,  found_type_stat_return  
+     delete_portions:
+         addi $t7, $t1, 1  #reach to the comma ascii 44
+         lb $t7, 0($t7)
+       
+       
+        deleting:
+        sb $zero, 0($t1)
+         addi $t1, $t1, -1  #reach to the comma ascii 44
+         
+         lb $t9, 0($t1)
+         beq $t9, 44, process_exit_delete
+         beq $t9, 58, process_exit_delete
+         
+          # Print the modified data from the file
+     #   li $v0, 15  # System call for write
+     #   move $a0, $v0  # File descriptor (assuming already open)
+     #   move $a1, $t1  # Address of the modified data
+      #  li $a2, 1  # Number of bytes to write
+      #  syscall
+         
+         j deleting
+         
+           
+      found_newline_delete:
+        # Move to the next line (skip the newline character)
+        addi $t1, $t1, 1
+        # Continue the loop
+        j delete_loop
+       
+       
+       
+      process_exit_delete:
+       
+ li $v0, 4
+la $a0, HI
+syscall      
+
+  # Print a newline
+         li $v0, 4          # system call number for print_str
+         la $a0, newline    # address of the newline character
+         syscall
+         
+        li $v0, 4          # system call for print_str
+        la $a0, finish_delete  # load address of the output message
+        syscall
+
+        # Print a newline
+       li $v0, 4          # system call number for print_str
+       la $a0, newline    # address of the newline character
+       syscall  
+                   
+         # Read file
+        #li $v0, 14         # system call number for read
+        #move $a0, $s0      # file descriptor
+        #la $a1, buffer     # buffer to store read data
+        #li $a2, 1024       # number of bytes to read
+        #syscall
+        ## Check if the read operation was successful
+         bgez $v0, print__data_buffer_after_dalete
+           
+
+        print__data_buffer_after_dalete:
+    # Print the read data
+         li $v0, 4          # system call number for print_str
+         la $a0, buffer     # address of the buffer
+         syscall
+
+    # Print a newline
+         li $v0, 4          # system call number for print_str
+         la $a0, newline    # address of the newline character
+         syscall
+         
+         li $v0, 4
+         la $a0, delet_buffe
+         syscall
+         
+        j EDIT_ON_FILE
+EDIT_ON_FILE:
+  # Open the file for writing, truncating its contents (syscall 13)
+    li $v0, 13          # syscall 13: open file
+    la $a0, filename    # load address of filename into $a0
+    li $a1, 1           # file flags: 1 for write
+    li $a2, 385         # file mode: O_WRONLY | O_TRUNC
+    syscall
+    sw $v0, file_dD      # store the file descriptor
+
+    # Optionally, you can write something to the file (e.g., a newline character)
+    li $v0, 15          # syscall 15: write to file
+    lw $a0, file_dD      # load file descriptor from memory
+    la $a1, spac     # load the address of the newline character into $a1
+    li $a2, 0          # number of bytes to write (newline character)
+    syscall
+
+    # Close the file (syscall 16)
+    li $v0, 16          # syscall 16: close file
+    lw $a0, file_dD      # load file descriptor from memory
+    syscall
+   
+ # Open the file for writing, truncating its contents or creating it if it doesn't exist (syscall 13)
+    li $v0, 13          # syscall 13: open file
+    la $a0, filename    # load address of filename into $a0
+    li $a1, 9           # file flags: 1 for write, 0 for read
+    li $a2, 0      # file mode: O_WRONLY | O_TRUNC | O_CREAT
+    syscall
+    sw $v0, file_d      # store the file descriptor
+ 
+
+    # Print the contents of the buffer to the file
+    li $v0, 15          # syscall 15: write to file
+    lw $a0, file_dD     # load file descriptor from memory
+    la $a1, buffer       # load the address of the buffer into $a1
+    li $a2, 600          # number of bytes to write (adjust based on your buffer size)
+    syscall
+
+
+    # Print the contents of the buffer to the file
+    li $v0, 15          # syscall 15: write to file
+    lw $a0, file_dD   # load file descriptor from memory
+    la $a1, delet_buffe  # load the address of the buffer into $a1
+    li $a2, 600          # number of bytes to write (adjust based on your buffer size)
+    syscall
+
+
+    # Close the file (syscall 16)
+    li $v0, 16          # syscall 16: close file
+    lw $a0, file_dD      # load file descriptor from memory
+    syscall
+
+    li $v0, 4
+    la $a0, HI
+    syscall
+
+    j menu_loop
+ 
+          #
+    exit_program:
+        # Exit program
+        li $v0, 10         # system call number for exit
+        syscall
+
